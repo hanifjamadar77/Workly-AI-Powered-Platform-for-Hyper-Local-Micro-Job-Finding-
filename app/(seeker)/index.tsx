@@ -7,13 +7,16 @@ import { useNavigation } from "@react-navigation/native";
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React from "react";
+import { useRouter } from 'expo-router';
 
 const Home = () => {
+
+  const router = useRouter();
   const Sliderimages = [
     "https://imgs.search.brave.com/TLtgFv9OolO-j3s4jBwVjhTZsaX5n9RnqdaHwIYe95o/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdC5k/ZXBvc2l0cGhvdG9z/LmNvbS8xMDIxMDEy/LzEzMzQvaS80NTAv/ZGVwb3NpdHBob3Rv/c18xMzM0Njk4Ni1z/dG9jay1waG90by1j/b25zdHJ1Y3Rpb24t/d29ya2Vycy13b3Jr/aW5nLW9uLWNlbWVu/dC5qcGc",
     "https://imgs.search.brave.com/gLqMJG_IOKQ37ZRN-TXqgEyuM94T8rUoso8vc3Qw3qM/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by9lbXBsb3llZXMt/M2QtZmxhdC1pY29u/LXZvbHVudGVlcmlu/Zy1jb21tdW5pdHkt/Y2xlYW51cHMtY3Ny/LWluaXRpYXRpdmUt/cHJvbW90aW5nLWVu/dmlyb25tZW5fOTgw/NzE2LTE3OTIyNy5q/cGc_c2VtdD1haXNf/aHlicmlk",
     "https://imgs.search.brave.com/Ga4HBrwZk6gz6VVyvesgGIBSbP0tGzP2xFAl78VISLk/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/ZnJlZS12ZWN0b3Iv/Y293b3JraW5nLXNw/YWNlLWlsbHVzdHJh/dGlvbi13aXRoLXBl/b3BsZS1vZmZpY2Vf/MjMtMjE0ODgyOTA5/Ni5qcGc_c2VtdD1h/aXNfaHlicmlkJnc9/NzQw",
-    "https://imgs.search.brave.com/9tiqy5sDBLwEqvkuN0cdgzHasV4p25u20nrxBdjpf6E/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by90ZWFtLWNvbW11/bml0eS1jbGVhbmVy/cy13b3JrZW5nLXRv/Z2V0aGVyXzEzODc2/MTQtNDc3NC5qcGc_/c2VtdD1haXNfaHli/cmlk",
+    "https://imgs.search.brave.com/67xJukDZvUzPb_fezO26cq6Ov9DH78VRkIHhAvU1LVk/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by90ZWFtLXlvdW5n/LXZvbHVudGVlcnMt/cGFydGljaXBhdGlu/Zy1vdXRkb29yLWNs/ZWFudXAtY2hhcml0/YWJsZS1jYXVzZS1j/b25jZXB0LXZvbHVu/dGVlcmlzbS1vdXRk/b29yLWNsZWFudXAt/Y29tbXVuaXR5LXNl/cnZpY2UteW91dGgt/ZW1wb3dlcm1lbnQt/Y2hhcml0YWJsZS1j/YXVzZV84NjQ1ODgt/ODk1MzkuanBnP3Nl/bXQ9YWlzX2h5YnJp/ZA",
   ];
 
   const quickJobs = [
@@ -71,6 +74,7 @@ const Home = () => {
             placeholder="Type something..."
             onChangeText={handleSearch}
             onPress={() => console.log("Pressed")}
+            
           />
 
           <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
@@ -88,7 +92,7 @@ const Home = () => {
               >
                 <JobCard
                   {...job}
-                  onPress={() => console.log("Job pressed:", job.title)}
+                  onPress={() => router.push("./supportPages/jobDetails")}
                 />
               </View>
             ))}

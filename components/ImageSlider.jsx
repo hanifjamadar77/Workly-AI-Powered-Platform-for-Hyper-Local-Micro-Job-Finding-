@@ -37,7 +37,7 @@ export default function ImageSlider({
   };
 
   return (
-    <View className="my-6 mx-6">
+    <View className="my-6 mx-1">
       <ScrollView
         ref={scrollViewRef}
         horizontal

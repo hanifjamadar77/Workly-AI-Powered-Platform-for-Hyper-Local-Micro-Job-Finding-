@@ -1,4 +1,4 @@
-import { Slot, Tabs } from "expo-router";
+import { Slot, Stack, Tabs } from "expo-router";
 import React from "react";
 
 import { images } from "@/constants";
