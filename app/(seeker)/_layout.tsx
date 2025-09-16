@@ -67,23 +67,23 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="completed"
+        name="post"
         options={{
-          title: "Completed",
+          title: "Post Jobs",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon title="Cart" icon={images.complete} focused={focused} />
+            <TabBarIcon title="Post" icon={images.post} focused={focused} />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="notifications"
+        name="jobProfile"
         options={{
-          title: "Notifications",
+          title: "Job Profiles",
           tabBarIcon: ({ focused }) => (
             <TabBarIcon
-              title="Profile"
-              icon={images.notification}
+              title="Job Profile"
+              icon={images.jobProfile}
               focused={focused}
             />
           ),

@@ -1,10 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-export default function completed() {
+export default function post() {
   return (
     <View>
-      <Text>completed</Text>
+      <Text>post</Text>
     </View>
   )
 }
