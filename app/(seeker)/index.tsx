@@ -57,13 +57,17 @@ const Home = () => {
   const navigation = useNavigation();
   const handleSearch = () => console.log("Searching...");
 
+  const handleFocus = () => {
+     router.push('/(seeker)/jobs');
+    }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
-        <View className="mt-4 px-4">
+        <View className="mt-4">
           <Header
             welcomeText="Welcome Back,"
             name="Harry Potter"
@@ -74,9 +78,10 @@ const Home = () => {
             placeholder="Type something..."
             onChangeText={handleSearch}
             onPress={() => console.log("Pressed")}
-            
+            onFocus={handleFocus} 
           />
 
+        <View className="mx-4">
           <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
 
           <Text className="text-2xl text-gray-800 font-medium my-5">
@@ -96,6 +101,7 @@ const Home = () => {
                 />
               </View>
             ))}
+          </View>
           </View>
         </View>
       </ScrollView>

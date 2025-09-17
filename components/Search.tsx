@@ -8,6 +8,7 @@ type SearchProps = {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
+  onFocus?: () => void;
   onPress?: () => void;
 };
 
@@ -16,6 +17,7 @@ export default function Search({
   value = "",
   onChangeText,
   onPress,
+  onFocus
 }: SearchProps) {
   const [text, setText] = useState(value);
 
@@ -30,20 +32,18 @@ export default function Search({
   //   router.push('/(seeker)/jobs');
   //  }
   return (
-    <View className="flex-row items-center bg-gray-200 p-3 rounded-full m-2 mt-4">
-        <TouchableOpacity className="pl-4" onPress={onPress}>
+    <View className="flex-row items-center bg-gray-200 p-2 rounded-full mx-4 mt-2">
+        <TouchableOpacity className="pl-3" onPress={onPress} onFocus={onFocus}>
             <Image
                 source={images.search}
-                className='size-7'
+                className='size-5'
                 resizeMode='contain'
                 tintColor= '#000000'
             />
         </TouchableOpacity>
       <TextInput
-        onFocus={() =>{
-          router.push('/(seeker)/jobs')
-        }}
-        className="flex-1 px-4 py-2 text-gray-500 text-xl"
+        onFocus={onFocus}
+        className="flex-1 px-4 py-2 text-gray-500 text-base"
         placeholder={placeholder}
         value={text}
         onChangeText={handleChange}

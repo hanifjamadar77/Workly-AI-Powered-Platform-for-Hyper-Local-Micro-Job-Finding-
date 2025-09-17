@@ -1,18 +1,19 @@
-import React, { useState } from "react";
 import { useRouter } from "expo-router";
+import React, { useState } from "react";
 
+import JobProfileCard from "@/components/JobProfileCards";
+import Search from "@/components/Search";
 import {
-  View,
-  Text,
   ScrollView,
-  TextInput,
   StatusBar,
+  Text,
   TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import JobProfileCard from "@/components/JobProfileCards";
 
 export default function JobProfileScreen() {
+  
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -24,7 +25,7 @@ export default function JobProfileScreen() {
       profession: "Plumber",
       experience: "5 year experience",
       rating: 4.8,
-      isTopRated: true,
+      isTopRated: false,
       availability: "Available",
       avatar:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
@@ -36,7 +37,7 @@ export default function JobProfileScreen() {
       profession: "Baby Sitter",
       experience: "2 year experience",
       rating: 4.9,
-      isTopRated: true,
+      isTopRated: false,
       availability: "Available",
       avatar:
         "https://images.unsplash.com/photo-1494790108755-2616b5a9b0e4?w=150&h=150&fit=crop&crop=face",
@@ -107,8 +108,14 @@ export default function JobProfileScreen() {
     console.log("Add new profile");
   };
 
+  const searchClick = () =>{
+      
+  }
+
+  const handleSearch = () => console.log("Searching...");
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white mb-20">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
       {/* Header */}
@@ -119,26 +126,20 @@ export default function JobProfileScreen() {
       </View>
 
       {/* Search Bar */}
-      <View className="px-4 mb-4">
-        <View className="bg-gray-100 rounded-xl px-4 py-3 flex-row items-center">
-          <Text className="text-gray-500 mr-2">🔍</Text>
-          <TextInput
-            className="flex-1 text-base"
-            placeholder="Search"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
+     <Search
+            placeholder="Type something..."
+            onChangeText={handleSearch}
+            onPress={() => console.log("Pressed")}
+     />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Recommended Profiles */}
         <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
+          {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}> */}
+          <Text className="text-lg font-bold text-gray-800 px-4 mb-4 mt-4">
             Recommended Profiles
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row">
+            <View className="flex-row flex-wrap justify-evenly">
               {recommendedProfiles.map((profile) => (
                 <JobProfileCard
                   key={profile.id}
@@ -148,7 +149,7 @@ export default function JobProfileScreen() {
                 />
               ))}
             </View>
-          </ScrollView>
+          {/* </ScrollView> */}
         </View>
 
         {/* In Your Area */}
@@ -156,7 +157,7 @@ export default function JobProfileScreen() {
           <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
             In your Area
           </Text>
-          <View className="flex-row flex-wrap justify-center">
+          <View className="flex-row flex-wrap justify-evenly">
             {nearbyProfiles.map((profile) => (
               <JobProfileCard
                 key={profile.id}
@@ -173,7 +174,7 @@ export default function JobProfileScreen() {
           <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
             In Your City
           </Text>
-          <View className="flex-row flex-wrap justify-center">
+          <View className="flex-row flex-wrap justify-evenly">
             {cityProfiles.map((profile) => (
               <JobProfileCard
                 key={profile.id}

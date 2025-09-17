@@ -1,9 +1,10 @@
-import { Slot, Stack, Tabs } from "expo-router";
-import React from "react";
+import { Slot, Stack, Tabs , Redirect, useRouter} from "expo-router";
+import React, { useEffect } from "react";
 
 import { images } from "@/constants";
 import { TabBarIconProps } from "@/type";
 import { Image, View } from "react-native";
+
 
 const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => (
   <View className="tab-icon">
@@ -17,6 +18,19 @@ const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => (
 );
 
 export default function TabLayout() {
+
+  // const router = useRouter();
+  // const isAuthenticated = false;
+
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     router.replace("/(auth)/login");
+  //   }
+  // }, [isAuthenticated]);
+
+  // if (!isAuthenticated) return null;
+   
+
   return (
     <Tabs
       screenOptions={{

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StatusBar } from 'react-native';
 
 export default function JobProfileCard({
   profile,
@@ -19,11 +19,13 @@ export default function JobProfileCard({
   } = profile;
 
   return (
+    
     <TouchableOpacity
       className={`${backgroundColor} rounded-2xl p-4 m-2 w-44 shadow-sm`}
       onPress={() => onPress(profile)}
       activeOpacity={0.7}
     >
+    <StatusBar/>
       {/* Top Rated Badge */}
       {isTopRated && (
         <View className="absolute top-3 right-3 bg-red-500 px-2 py-1 rounded-full">

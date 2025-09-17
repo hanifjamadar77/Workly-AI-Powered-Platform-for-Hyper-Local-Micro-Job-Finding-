@@ -9,15 +9,16 @@ export default function Header({
   return (
     <View className="flex-row justify-between items-center bg-white p-5 ">
       <View>
-        <Text className="text-black text-xl">{welcomeText}</Text>
-        <Text className="text-black text-3xl font-bold">{name}</Text>
+        <Text className="text-black text-2xl ">{welcomeText}</Text>
+        <Text className="text-black text-2xl font-bold">{name}</Text>
       </View>
 
       {profileImage ? (
         <Image
           source={profileImage}
-          className="w-[5rem] h-[5rem] rounded-full border-2 border-white"
+          className="w-[4rem] h-[4rem] rounded-full border-2 border-white"
           resizeMode="cover"
+          
         />
       ) : null}
     </View>

@@ -1,15 +1,14 @@
-import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  StatusBar,
-  Alert,
+    Alert,
+    Image,
+    ScrollView,
+    StatusBar,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
 export default function WorkerProfileScreen({ route }) {
   const navigation = useNavigation();
@@ -72,10 +71,9 @@ export default function WorkerProfileScreen({ route }) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar barStyle="dark-content" backgroundColor="gray-50" />
-      
+    {/* <StatusBar style="dark" hidden={true} /> */}
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 bg-white">
+      <View className="flex-row items-center justify-between px-4 py-4 bg-white"> 
         <TouchableOpacity 
           onPress={() => navigation.goBack()}
           className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center"

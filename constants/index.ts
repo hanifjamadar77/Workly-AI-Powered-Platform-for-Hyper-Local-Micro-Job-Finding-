@@ -29,6 +29,8 @@ import man from "@/assets/images/man.png";
 import women from "@/assets/images/woman.png";
 import worker from "@/assets/images/worker-man.png";
 
+import keyBg from "@/assets/images/key.png";
+
 export const images = {
     home,
     jobs,
@@ -39,6 +41,9 @@ export const images = {
     man,
     worker,
     women,
+
+    keyBg,
+
     arrowBack,
     arrowDown,
     arrowRight,

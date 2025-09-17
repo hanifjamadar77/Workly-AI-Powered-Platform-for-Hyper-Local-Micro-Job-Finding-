@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 
 type JobCardProps = {
   title: string;
@@ -17,19 +17,19 @@ export default function JobCard({
   price,
   duration,
   icon,
-  backgroundColor = 'bg-green-100',
-  onPress
+  backgroundColor = "bg-green-100",
+  onPress,
 }: JobCardProps) {
   const renderIcon = () => {
-    if (typeof icon === 'string') {
+    if (typeof icon === "string") {
       // If icon is an emoji string
       return <Text className="text-2xl">{icon}</Text>;
-    } else if (typeof icon === 'object' && icon !== null) {
+    } else if (typeof icon === "object" && icon !== null) {
       // If icon is an image object (require() or {uri: ''})
       return (
-        <Image 
-          source={icon} 
-          className="w-8 h-8 rounded-full" 
+        <Image
+          source={icon}
+          className="w-12 h-12 rounded-full"
           resizeMode="cover"
         />
       );
@@ -41,32 +41,32 @@ export default function JobCard({
 
   return (
     <TouchableOpacity
-      className={`${backgroundColor} rounded-2xl p-4 m-2 w-48 shadow-sm items-center`}
+      className={`${backgroundColor} flex-1 rounded-2xl p-4 m-2 shadow-md justify-evenly`}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       {/* Duration Badge */}
-      <View className="absolute top-3 right-3">
+      <View className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full shadow-sm">
         <Text className="text-xs text-gray-600 font-medium">{duration}</Text>
       </View>
 
       {/* Icon/Avatar */}
-      <View className="w-14 h-14 bg-white rounded-full justify-center items-center mb-3 shadow-sm">
+      <View className="w-16 h-16 bg-white rounded-full justify-center items-center mb-3 shadow-sm self-center">
         {renderIcon()}
       </View>
 
       {/* Job Title */}
-      <Text className="text-xl font-bold text-gray-800 mb-2 leading-tight text-center">
+      <Text className="text-base font-semibold text-gray-800 text-center mb-1">
         {title}
       </Text>
 
       {/* Description */}
-      <Text className="text-sm text-gray-600 mb-3 leading-relaxed">
+      <Text className="text-xs text-gray-600 text-center mb-2 px-1">
         {description}
       </Text>
 
       {/* Price */}
-      <Text className="text-lg font-bold text-gray-900">
+      <Text className="text-sm font-bold text-blue-600 text-center">
         ${price}
       </Text>
     </TouchableOpacity>

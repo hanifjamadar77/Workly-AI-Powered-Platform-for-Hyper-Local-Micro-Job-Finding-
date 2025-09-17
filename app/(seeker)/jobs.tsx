@@ -35,7 +35,7 @@ export default function jobs() {
       price: "10.00",
       duration: "1 Aug",
       icon: images.worker,
-      backgroundColor: "bg-gray-200",
+      backgroundColor: "bg-purple-100",
     },
     {
       title: "BabySitter for 1 day",
@@ -43,7 +43,7 @@ export default function jobs() {
       price: "15.00",
       duration: "1 Aug",
       icon: images.women,
-      backgroundColor: "bg-gray-200",
+      backgroundColor: "bg-green-100",
     },
 
     {
@@ -52,7 +52,7 @@ export default function jobs() {
       price: "10.00",
       duration: "1 Aug",
       icon: images.worker,
-      backgroundColor: "bg-gray-200",
+      backgroundColor: "bg-green-100",
     },
     {
       title: "BabySitter for 1 day",
@@ -60,7 +60,7 @@ export default function jobs() {
       price: "15.00",
       duration: "1 Aug",
       icon: images.women,
-      backgroundColor: "bg-gray-200",
+      backgroundColor: "bg-purple-100",
     },
   ];
 
@@ -91,14 +91,14 @@ export default function jobs() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
-        <View className="mt-4 px-4">
+        <View className="mt-4">
           <Search
             placeholder="Type something..."
             onChangeText={handleSearch}
             onPress={() => console.log("Pressed")}
           />
-
-          <Text className="text-2xl text-gray-800 font-medium my-5">
+        <View className="mx-4">
+          <Text className="text-xl text-gray-800 font-medium my-5">
           Recommended Jobs
         </Text>
         
@@ -113,7 +113,7 @@ export default function jobs() {
           ))}
         </View>
 
-        <Text className="text-2xl text-gray-800 font-medium my-5">
+        <Text className="text-xl text-gray-800 font-medium my-5">
           In Your Area
         </Text>
 
@@ -122,13 +122,13 @@ export default function jobs() {
             <View key={index} className="w-[48%] mb-4">
               <JobCard
                 {...job}
-                onPress={() => router.push('./supportPages/jobDetails')}
+                onPress={() => router.push('../supportPages/jobDetails')}
               />
             </View>
           ))}
         </View>
 
-         <Text className="text-2xl text-gray-800 font-medium my-5">
+         <Text className="text-xl text-gray-800 font-medium my-5">
           Long Term Jobs
         </Text>
 
@@ -137,10 +137,11 @@ export default function jobs() {
             <View key={index} className="w-[48%] mb-4">
               <JobCard
                 {...job}
-                onPress={() => router.push('./supportPages/jobDetails')}
+                onPress={() => router.push('../supportPages/jobDetails')}
               />
             </View>
           ))}
+        </View>
         </View>
         </View>
       </ScrollView>
