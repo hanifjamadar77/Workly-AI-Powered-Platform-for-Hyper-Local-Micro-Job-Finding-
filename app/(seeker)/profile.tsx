@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { getCurrentUser } from "@/lib/appwrite";
 
 type RootStackParamList = {
   your_profile: undefined;
@@ -24,13 +25,32 @@ type RootStackParamList = {
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function profile() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+      const fetchUser = async () => {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+      };
+  
+      fetchUser();
+    }, []);
+  
+    if (!user) {
+      return (
+        <View className="flex-1 items-center justify-center">
+          <Text>Loading...</Text>
+        </View>
+      );
+    }
+    
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
-  const profileData = {
-    name: "Laal Singh Chaddha",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-  };
+  // const profileData = {
+  //   name: "Laal Singh Chaddha",
+  //   avatar:
+  //     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+  // };
 
   const menuItems = [
     { id: 1, title: "Your Profile", icon: "👤", screen: "your_profile", color: "text-gray-700" },
@@ -64,14 +84,14 @@ export default function profile() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Avatar */}
         <View className="items-center py-8">
-          <View className="w-24 h-24 bg-red-500 rounded-full justify-center items-center mb-4">
+          <View className="w-24 h-24 rounded-full justify-center items-center mb-4">
             <Image
-              source={{ uri: profileData.avatar }}
+              source={{ uri: user.avatar }}
               className="w-20 h-20 rounded-full"
               resizeMode="cover"
             />
           </View>
-          <Text className="text-xl font-semibold text-gray-800">{profileData.name}</Text>
+          <Text className="text-xl font-semibold text-gray-800">{user?.name?.toUpperCase()} </Text>
         </View>
 
         {/* Menu Items */}

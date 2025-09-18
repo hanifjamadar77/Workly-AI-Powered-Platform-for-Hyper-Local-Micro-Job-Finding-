@@ -5,11 +5,11 @@ import { Dimensions, Image, ImageBackground, KeyboardAvoidingView, Platform, Scr
 
 
 export default function TabLayout() {
-  const isAuthenticated = false; // replace with real check
+  // const isAuthenticated = false; // replace with real check
 
-  if (isAuthenticated) {
-    return <Redirect href="/(seeker)" />; // or wherever you want after login
-  }
+  // if (isAuthenticated) {
+  //   return <Redirect href="/(seeker)" />; // or wherever you want after login
+  // }
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>

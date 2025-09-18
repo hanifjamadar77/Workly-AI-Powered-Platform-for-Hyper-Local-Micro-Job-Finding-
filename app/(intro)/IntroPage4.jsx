@@ -6,17 +6,17 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter} from "expo-router";
 
 export default function IntroPage4() {
-  const navigation = useNavigation();
+    const router = useRouter();
 
   const handleExplore = () => {
-    navigation.navigate('Home');
+    router.replace('/(seeker)');
   };
 
   const handleSkip = () => {
-    navigation.navigate('Home');
+    router.replace('/(seeker)')
   };
 
   return (

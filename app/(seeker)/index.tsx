@@ -1,15 +1,35 @@
 import Header from "@/components/Header";
-import Search from "@/components/Search";
 import ImageSlider from "@/components/ImageSlider";
 import JobCard from "@/components/JobCard";
+import Search from "@/components/Search";
 import { images } from "@/constants";
+import { getCurrentUser } from "@/lib/appwrite";
 import { useNavigation } from "@react-navigation/native";
-import { View, Text, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import React from "react";
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+
+    fetchUser();
+  }, []);
+
+  if (!user) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   const router = useRouter();
   const Sliderimages = [
@@ -70,8 +90,8 @@ const Home = () => {
         <View className="mt-4">
           <Header
             welcomeText="Welcome Back,"
-            name="Harry Potter"
-            profileImage={images.man}
+            name={user?.name?.toUpperCase()} 
+            profileImage={{ uri: user.avatar }} 
           />
 
           <Search

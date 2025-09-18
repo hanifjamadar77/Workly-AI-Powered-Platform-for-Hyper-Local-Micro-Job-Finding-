@@ -27,8 +27,9 @@ export default function signup() {
       await createUser({name, email, password});
       
       router.replace("/(intro)/IntroPage1"); // ✅ navigate to seeker dashboard
-    } catch (err) {
-      Alert.alert("Error", "Something went wrong");
+    } catch (err: any) {
+      console.error("Signup error:", err); // logs to Metro console
+  Alert.alert("Error", err.message || "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }

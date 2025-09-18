@@ -1,5 +1,6 @@
 import CustomButton from '@/components/CustomButton';
 import CustomInput from '@/components/CustomInput';
+import { signup } from '@/lib/appwrite';
 import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Text, View } from 'react-native';
@@ -11,8 +12,9 @@ export default function Login() {
     password: '',
   });
 
-  const onSubmit = () => {
-    if (!form.email || !form.password) {
+  const onSubmit = async () => {
+    const { email, password } = form;
+    if (!email || !password) {
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
@@ -20,6 +22,8 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
+      await signup({ email, password });
+
       Alert.alert("Success", "Logged in successfully");
       router.replace("/(intro)/IntroPage1"); // ✅ navigate to seeker dashboard
     } catch (err) {

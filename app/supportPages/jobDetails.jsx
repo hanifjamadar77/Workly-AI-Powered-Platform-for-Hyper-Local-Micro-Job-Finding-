@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { images } from "@/constants";
 
 export default function JobDetails({ route }) {
   const navigation = useNavigation();
@@ -62,6 +63,21 @@ export default function JobDetails({ route }) {
   return (
     <SafeAreaView className="flex-1 flex-col bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
+
+{/* Header */}
+      <View className="flex-row items-center justify-between px-4 py-4 bg-white"> 
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center"
+        >
+           <Image className = "size-5" source={images.arrowBack}/>
+        </TouchableOpacity>
+        <Text className="text-lg font-semibold text-gray-800">Job Details</Text>
+        <TouchableOpacity className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center">
+          <Text className="text-lg">⋯</Text>
+        </TouchableOpacity>
+      </View>
+
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} style={{margin : "8"}}>
         {/* Job Image */}

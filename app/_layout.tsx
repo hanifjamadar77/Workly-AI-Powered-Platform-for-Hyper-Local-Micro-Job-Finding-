@@ -1,39 +1,47 @@
-import { Slot, Redirect, useRouter, useSegments } from "expo-router";
-import "./globals.css";
+import { account } from "@/lib/appwrite"; // ✅ import your appwrite.tsx config
+import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
+import "./globals.css";
 
 export default function Layout() {
- const router = useRouter();
+  const router = useRouter();
   const segments = useSegments();
 
-  // Simulate auth state (later replace with real Appwrite check)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+  // ✅ Check Appwrite session on mount
   useEffect(() => {
-    // Fake loading auth state
-    setTimeout(() => {
-      setIsAuthenticated(false); // change to true to test
-    }, 1000);
+    const checkAuth = async () => {
+      try {
+        const user = await account.get(); // fetch current user
+        console.log("Logged in user:", user);
+        setIsAuthenticated(true);
+      } catch (err) {
+        console.log("No active session:", err);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
+  // ✅ Handle redirects based on auth state
   useEffect(() => {
-    if (isAuthenticated === null) return; // wait until auth resolved
+    if (isAuthenticated === null) return; // wait until auth check completes
 
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
-      // redirect guest to login
-      router.replace("/(auth)/login");
+      router.replace("/(auth)/login"); // guest → login
     } else if (isAuthenticated && inAuthGroup) {
-      // redirect logged in user away from auth
-      router.replace("/(seeker)");
+      router.replace("/(intro)/IntroPage1"); // logged-in → seeker dashboard
     }
   }, [isAuthenticated, segments]);
 
   if (isAuthenticated === null) {
-    // temporary splash while checking auth
+    // ✅ simple splash/loading screen
     return null;
   }
 
   return <Slot />;
-  }
+}
