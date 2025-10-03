@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/splash.png",
-    "scheme": "Workly",
+    "scheme": [
+      "workly"
+    ],
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -14,7 +16,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hanif.workly",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +28,8 @@
         "resizeMode": "cover",
         "backgroundColor": "#4A90E2"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.hanif_jamadar.Workly"
     },
     "web": {
       "bundler": "metro",
@@ -44,6 +51,22 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "persistNavigation": true
+    },
+      "eas": {
+        "projectId": "5aabec1d-0105-4209-bf1f-eb7156952414"
+      }
+    },
+    "owner": "hanif_jamadar",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/5aabec1d-0105-4209-bf1f-eb7156952414"
     }
   }
 }

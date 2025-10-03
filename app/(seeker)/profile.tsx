@@ -1,31 +1,19 @@
-import React, { useEffect, useState } from "react";
+import ProfileMenuItem from '@/components/profileMenuItem';
+import { getCurrentUser } from '@/lib/appwrite';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
   Image,
+  ScrollView,
   StatusBar,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { getCurrentUser } from "@/lib/appwrite";
-
-type RootStackParamList = {
-  your_profile: undefined;
-  PaymentMethod: undefined;
-  Settings: undefined;
-  HelpCenter: undefined;
-  PrivacyPolicy: undefined;
-  InviteFriends: undefined;
-  login: undefined;
-};
-
-type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
-export default function profile() {
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+export default function MainProfileScreen() {
   const [user, setUser] = useState<any>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
       const fetchUser = async () => {
@@ -43,76 +31,115 @@ export default function profile() {
         </View>
       );
     }
-    
-  const navigation = useNavigation<ProfileScreenNavigationProp>();
-
-  // const profileData = {
-  //   name: "Laal Singh Chaddha",
-  //   avatar:
-  //     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+  // const userData = {
+  //   name: 'Laal Singh Chaddha',
+  //   avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
   // };
 
-  const menuItems = [
-    { id: 1, title: "Your Profile", icon: "👤", screen: "your_profile", color: "text-gray-700" },
-    { id: 2, title: "Payment Method", icon: "💳", screen: "PaymentMethod", color: "text-blue-600" },
-    { id: 3, title: "Settings", icon: "⚙️", screen: "Settings", color: "text-blue-600" },
-    { id: 4, title: "Help Center", icon: "❓", screen: "HelpCenter", color: "text-gray-700" },
-    { id: 5, title: "Privacy Policy", icon: "🛡️", screen: "PrivacyPolicy", color: "text-gray-700" },
-    { id: 6, title: "Invites Friends", icon: "👥", screen: "InviteFriends", color: "text-gray-700" },
-    { id: 7, title: "Log Out", icon: "🚪", screen: "LogOut", color: "text-gray-700" },
-  ];
-
-  const handleMenuPress = (item: typeof menuItems[0]) => {
-    if (item.screen === "LogOut") {
-      console.log("Logging out...");
-      // navigation.reset({ index: 0, routes: [{ name: "(auth)/login" }] });
-      navigation.navigate("login");
-      return;
-    }
-    navigation.navigate(item.screen as any);
+  const handleEditProfile = () => {
+    // navigation.navigate('YourProfile');
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-
-      {/* Header */}
-      <View className="px-4 py-4">
-        <Text className="text-xl font-bold text-gray-800 text-center">Profile</Text>
+      
+      {/* Profile Header with Background Banner */}
+      <View className="relative">
+        {/* Background Rectangle Banner */}
+        <View className="bg-gradient-to-r from-indigo-500 to-purple-600 h-32 rounded-b-3xl" 
+          style={{ backgroundColor: '#6366f1' }} 
+        />
+        
+        {/* Profile Content Overlay */}
+        <View className="absolute -bottom-16 left-0 right-0 items-center">
+          {/* Profile Avatar with Edit Button */}
+          <View className="relative">
+            <View className="w-28 h-28 bg-red-500 rounded-full justify-center items-center border-4 border-white shadow-lg">
+              <Image
+                source={{ uri: user.avatar }}
+                className="w-24 h-24 rounded-full"
+                resizeMode="cover"
+              />
+            </View>
+            <TouchableOpacity 
+              className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full justify-center items-center border-2 border-white"
+              onPress={handleEditProfile}
+            >
+              <Text className="text-white text-sm">✏️</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Avatar */}
-        <View className="items-center py-8">
-          <View className="w-24 h-24 rounded-full justify-center items-center mb-4">
-            <Image
-              source={{ uri: user.avatar }}
-              className="w-20 h-20 rounded-full"
-              resizeMode="cover"
-            />
-          </View>
-          <Text className="text-xl font-semibold text-gray-800">{user?.name?.toUpperCase()} </Text>
-        </View>
+      {/* Name Section */}
+      <View className="items-center mt-20 mb-6">
+        <Text className="text-xl font-bold text-indigo-600">
+          {user.name}
+        </Text>
+      </View>
 
+      <ScrollView 
+        className="flex-1 px-4" 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
         {/* Menu Items */}
-        <View className="px-4 rounded-t-3xl mb-3">
-          {menuItems.map((item) => (
-            <Pressable
-              key={item.id}
-              className="flex-row items-center justify-between py-4 border-b border-gray-200 mb-2"
-              onPress={() => handleMenuPress(item)}
-              android_ripple={{ color: "#e5e7eb" }}
-            >
-              <View className="flex-row items-center flex-1">
-                <View className="w-8 h-8 justify-center items-center mr-4">
-                  <Text className="text-xl">{item.icon}</Text>
-                </View>
-                <Text className={`text-base font-medium ${item.color}`}>{item.title}</Text>
-              </View>
-              <Text className="text-gray-400 text-lg">›</Text>
-            </Pressable>
-          ))}
-        </View>
+        <ProfileMenuItem
+          icon="👤"
+          title="Your Profile"
+          screenName="profileScreens/yourProfile"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="💳"
+          title="Payment Method"
+          screenName="PaymentMethod"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="⚙️"
+          title="Settings"
+          screenName="jobs"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="❓"
+          title="Help Center"
+          screenName="HelpCenter"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="🛡️"
+          title="Privacy Policy"
+          screenName="PrivacyPolicy"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="👥"
+          title="Invites Friends"
+          screenName="InviteFriends"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
+
+        <ProfileMenuItem
+          icon="🚪"
+          title="Log Out"
+          screenName="Logout"
+          iconColor="text-gray-800"
+          textColor="text-indigo-600"
+        />
       </ScrollView>
     </SafeAreaView>
   );

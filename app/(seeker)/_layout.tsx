@@ -1,5 +1,5 @@
-import { Slot, Stack, Tabs , Redirect, useRouter} from "expo-router";
-import React, { useEffect } from "react";
+import { Slot, Tabs } from "expo-router";
+import React from "react";
 
 import { images } from "@/constants";
 import { TabBarIconProps } from "@/type";
