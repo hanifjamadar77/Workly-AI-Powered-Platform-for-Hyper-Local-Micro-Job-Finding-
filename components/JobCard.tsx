@@ -1,11 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
+import { MapPin } from "lucide-react-native";
 
 type JobCardProps = {
   title: string;
-  description: string;
+  date: string;
   price: number | string;
   duration: string;
+  location?: string;
   icon: string | { uri: string } | number;
   backgroundColor?: string;
   onPress?: () => void;
@@ -13,9 +15,10 @@ type JobCardProps = {
 
 export default function JobCard({
   title,
-  description,
+  date,
   price,
   duration,
+  location,
   icon,
   backgroundColor = "bg-green-100",
   onPress,
@@ -40,7 +43,7 @@ export default function JobCard({
   };
 
   return (
-    <TouchableOpacity
+   <TouchableOpacity
       className={`${backgroundColor} flex-1 rounded-2xl p-4 m-2 shadow-md justify-evenly`}
       onPress={onPress}
       activeOpacity={0.8}
@@ -62,13 +65,20 @@ export default function JobCard({
 
       {/* Description */}
       <Text className="text-xs text-gray-600 text-center mb-2 px-1">
-        {description}
+        {location}
       </Text>
+
+      {/* Location */}
+      <View className="flex-row items-center justify-center mb-2">
+        <Text className="text-xs text-gray-600">{date}</Text>
+      </View>
 
       {/* Price */}
       <Text className="text-sm font-bold text-blue-600 text-center">
         ${price}
       </Text>
     </TouchableOpacity>
+
+
   );
 }

@@ -5,7 +5,7 @@ import Search from "@/components/Search";
 import { images } from "@/constants";
 import { getCurrentUser } from "@/lib/appwrite";
 import { useNavigation } from "@react-navigation/native";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,36 +40,37 @@ const Home = () => {
 
   const quickJobs = [
     {
-      title: 'Grass Cutting',
-      description: '24 sq ft',
-      price: '10.00',
-      duration: '1 Aug',
+      title: "Grass Cutting",
+      date: "5/08/2025",
+      price: "10.00",
+      duration: "1 Aug",
+      location: "Wagholi, Pune",
       icon: images.worker,
-      backgroundColor: 'bg-green-100',
+      backgroundColor: "bg-green-100",
     },
     {
-      title: 'BabySitter for 1 day',
-      description: '2 Child',
-      price: '15.00',
-      duration: '1 Aug',
+      title: "BabySitter for 1 day",
+      description: "2 Child",
+      price: "15.00",
+      duration: "1 Aug",
       icon: images.women,
-      backgroundColor: 'bg-purple-100',
+      backgroundColor: "bg-purple-100",
     },
     {
-      title: 'BabySitter for 1 day',
-      description: '2 Child',
-      price: '15.00',
-      duration: '1 Aug',
+      title: "BabySitter for 1 day",
+      description: "2 Child",
+      price: "15.00",
+      duration: "1 Aug",
       icon: images.women,
-      backgroundColor: 'bg-purple-100',
+      backgroundColor: "bg-purple-100",
     },
     {
-      title: 'Grass Cutting',
-      description: '24 sq ft',
-      price: '10.00',
-      duration: '1 Aug',
+      title: "Grass Cutting",
+      description: "24 sq ft",
+      price: "10.00",
+      duration: "1 Aug",
       icon: images.worker,
-      backgroundColor: 'bg-green-100',
+      backgroundColor: "bg-green-100",
     },
   ];
 
@@ -77,8 +78,8 @@ const Home = () => {
   const handleSearch = () => console.log("Searching...");
 
   const handleFocus = () => {
-     router.push('/(seeker)/jobs');
-    }
+    router.replace("/(seeker)/jobs");
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -89,38 +90,40 @@ const Home = () => {
         <View className="mt-4">
           <Header
             welcomeText="Welcome Back,"
-            name={user?.name?.toUpperCase()} 
-            profileImage={{ uri: user.avatar }} 
+            name={
+              user?.name
+                ? user.name.charAt(0).toUpperCase() +
+                  user.name.slice(1).toLowerCase()
+                : ""
+            }
+            profileImage={{ uri: user.avatar }}
           />
 
           <Search
             placeholder="Type something..."
             onChangeText={handleSearch}
             onPress={() => console.log("Pressed")}
-            onFocus={handleFocus} 
+            onFocus={handleFocus}
           />
 
-        <View className="mx-4">
-          <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
+          <View className="mx-4">
+            <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
 
-          <Text className="text-2xl text-gray-800 font-medium my-5">
-            Recommended Jobs
-          </Text>
+            <Text className="text-2xl text-gray-800 font-medium my-5">
+              Recommended Jobs
+            </Text>
 
-          {/* Job Grid - 2 per row */}
-          <View className="flex flex-row flex-wrap justify-between">
-            {quickJobs.map((job, index) => (
-              <View
-                key={index}
-                className="w-[48%] mb-4"
-              >
-                <JobCard
-                  {...job}
-                  onPress={() => router.push("./supportPages/jobDetails")}
-                />
-              </View>
-            ))}
-          </View>
+            {/* Job Grid - 2 per row */}
+            <View className="flex flex-row flex-wrap justify-between">
+              {quickJobs.map((job, index) => (
+                <View key={index} className="w-[48%] mb-4">
+                  <JobCard
+                    {...job}
+                    onPress={() => router.push("./supportPages/jobDetails")}
+                  />
+                </View>
+              ))}
+            </View>
           </View>
         </View>
       </ScrollView>

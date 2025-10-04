@@ -22,8 +22,8 @@ import complete from "@/assets/images/completed.png";
 import home from "@/assets/images/home.png";
 import jobs from "@/assets/images/jobs.png";
 import post from "@/assets/images/more.png";
+import notification from "@/assets/images/notification.png";
 import jobProfile from "@/assets/images/resume.png";
-import profile from "@/assets/images/profile.png";
 
 import man from "@/assets/images/man.png";
 import women from "@/assets/images/woman.png";
@@ -37,7 +37,7 @@ export const images = {
     complete,
     post,
     jobProfile,
-    profile,
+    notification,
     man,
     worker,
     women,

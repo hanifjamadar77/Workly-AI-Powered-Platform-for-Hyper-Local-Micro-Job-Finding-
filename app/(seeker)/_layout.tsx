@@ -5,7 +5,6 @@ import { images } from "@/constants";
 import { TabBarIconProps } from "@/type";
 import { Image, View } from "react-native";
 
-
 const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => (
   <View className="tab-icon">
     <Image
@@ -18,35 +17,17 @@ const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => (
 );
 
 export default function TabLayout() {
-
-  // const router = useRouter();
-  // const isAuthenticated = false;
-
-  // useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     router.replace("/(auth)/login");
-  //   }
-  // }, [isAuthenticated]);
-
-  // if (!isAuthenticated) return null;
-   
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-
         tabBarLabelStyle: {
-          fontSize: 10, // label text size
+          fontSize: 10,
           fontWeight: "600",
-          color : "#5D5F6D",
+          color: "#5D5F6D",
         },
         tabBarStyle: {
-          // borderTopLeftRadius: 50,
-          // borderTopRightRadius: 50,
-          // borderBottomLeftRadius: 50,
-          // borderBottomRightRadius: 50,
           marginHorizontal: 0,
           height: 70,
           position: "absolute",
@@ -82,15 +63,27 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="post"
-        options={{
+        options={({ navigation, route }) => ({
           title: "Post Jobs",
           tabBarIcon: ({ focused }) => (
             <TabBarIcon title="Post" icon={images.post} focused={focused} />
           ),
-        }}
+          // Hide tab bar on this screen
+          tabBarStyle: { display: "none" },
+        })}
       />
 
       <Tabs.Screen
+        name="notifications"
+        options={{
+          title: "Notifications",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon title="notifications" icon={images.notification} focused={focused} />
+          ),
+        }}
+      />
+
+       <Tabs.Screen
         name="jobProfile"
         options={{
           title: "Job Profiles",
@@ -98,20 +91,6 @@ export default function TabLayout() {
             <TabBarIcon
               title="Job Profile"
               icon={images.jobProfile}
-              focused={focused}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              title="Profile"
-              icon={images.profile}
               focused={focused}
             />
           ),
