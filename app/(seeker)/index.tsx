@@ -11,6 +11,8 @@ import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
+  const router = useRouter();
+  const navigation = useNavigation(); // moved above return
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -30,7 +32,9 @@ const Home = () => {
     );
   }
 
-  const router = useRouter();
+  const handleSearch = () => console.log("Searching...");
+  const handleFocus = () => router.replace("/(seeker)/jobs");
+
   const Sliderimages = [
     "https://imgs.search.brave.com/TLtgFv9OolO-j3s4jBwVjhTZsaX5n9RnqdaHwIYe95o/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdC5k/ZXBvc2l0cGhvdG9z/LmNvbS8xMDIxMDEy/LzEzMzQvaS80NTAv/ZGVwb3NpdHBob3Rv/c18xMzM0Njk4Ni1z/dG9jay1waG90by1j/b25zdHJ1Y3Rpb24t/d29ya2Vycy13b3Jr/aW5nLW9uLWNlbWVu/dC5qcGc",
     "https://imgs.search.brave.com/gLqMJG_IOKQ37ZRN-TXqgEyuM94T8rUoso8vc3Qw3qM/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by9lbXBsb3llZXMt/M2QtZmxhdC1pY29u/LXZvbHVudGVlcmlu/Zy1jb21tdW5pdHkt/Y2xlYW51cHMtY3Ny/LWluaXRpYXRpdmUt/cHJvbW90aW5nLWVu/dmlyb25tZW5fOTgw/NzE2LTE3OTIyNy5q/cGc_c2VtdD1haXNf/aHlicmlk",
@@ -51,35 +55,35 @@ const Home = () => {
     {
       title: "BabySitter for 1 day",
       description: "2 Child",
+      date: "5/08/2025",
       price: "15.00",
       duration: "1 Aug",
+      location: "Kharadi, Pune",
       icon: images.women,
       backgroundColor: "bg-purple-100",
     },
     {
       title: "BabySitter for 1 day",
       description: "2 Child",
+      date: "5/08/2025",
       price: "15.00",
       duration: "1 Aug",
+      location: "Kharadi, Pune",
       icon: images.women,
       backgroundColor: "bg-purple-100",
     },
     {
       title: "Grass Cutting",
       description: "24 sq ft",
+      date: "5/08/2025",
       price: "10.00",
       duration: "1 Aug",
+      location: "Wagholi, Pune",
       icon: images.worker,
       backgroundColor: "bg-green-100",
     },
   ];
 
-  const navigation = useNavigation();
-  const handleSearch = () => console.log("Searching...");
-
-  const handleFocus = () => {
-    router.replace("/(seeker)/jobs");
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">

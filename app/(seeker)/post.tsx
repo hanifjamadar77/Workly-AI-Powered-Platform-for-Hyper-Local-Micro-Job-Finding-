@@ -8,11 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { images } from "@/constants";
+import { createJob, getCurrentUser } from "@/lib/appwrite"; // ✅ Appwrite helpers
 
 export default function PostJobScreen() {
   const router = useRouter();
@@ -34,6 +36,7 @@ export default function PostJobScreen() {
   const [endDate, setEndDate] = useState(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleFormChange = (field: string, value: string) => {
     setForm({ ...form, [field]: value });
@@ -41,7 +44,7 @@ export default function PostJobScreen() {
 
   const onChangeStartDate = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || startDate;
-    setShowStartDatePicker(Platform.OS === "ios");
+    setShowStartDatePicker(false);
     setStartDate(currentDate);
     if (currentDate > endDate) {
       setEndDate(currentDate);
@@ -50,51 +53,105 @@ export default function PostJobScreen() {
 
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || endDate;
-    setShowEndDatePicker(Platform.OS === "ios");
+    setShowEndDatePicker(false);
     setEndDate(currentDate);
   };
 
-  const handlePostJob = () => {
-    const { title, description, category, houseNumber, street, city, state, pincode, pay, peopleNeeded } = form;
+const handlePostJob = async () => {
+  const {
+    title,
+    description,
+    category,
+    houseNumber,
+    street,
+    city,
+    state,
+    pincode,
+    pay,
+    peopleNeeded,
+  } = form;
 
-    if (
-      !title ||
-      !description ||
-      !category ||
-      !houseNumber ||
-      !street ||
-      !city ||
-      !state ||
-      !pincode ||
-      !startDate ||
-      !endDate ||
-      !pay ||
-      !peopleNeeded
-    ) {
-      alert("Please fill all fields");
+  // Validation
+  if (
+    !title ||
+    !description ||
+    !houseNumber ||
+    !street ||
+    !city ||
+    !state ||
+    !pincode ||
+    !pay ||
+    !peopleNeeded
+  ) {
+    alert("⚠️ Please fill all fields");
+    return;
+  }
+
+  if (pincode.length !== 6) {
+    alert("⚠️ Pincode must be 6 digits");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // Get logged-in user
+    const user = await getCurrentUser();
+    if (!user) {
+      alert("You must be logged in to post a job.");
       return;
     }
-    if (pincode.length !== 6) {
-      alert("Pincode must be 6 digits");
-      return;
-    }
-    if (endDate < startDate) {
-      alert("End date cannot be before start date");
-      return;
-    }
-    console.log({
-      ...form,
-      startDate,
-      endDate,
+
+    // Create new job in Appwrite
+    const response = await createJob({
+      title,
+      description,
+      // category: category || "General",
+      houseNumber,
+      street,
+      city,
+      state,
+      pincode,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      pay,
+      peopleNeeded,
+      userId: user.accountId,
+      createdDate: new Date().toISOString(), 
     });
-    alert("Job Posted Successfully ✅");
-    router.back(); // go back to jobs page
-  };
 
+    console.log("✅ Job Created:", response);
+    alert("✅ Job Posted Successfully!");
+    
+    // Clear form
+    setForm({
+      title: "",
+      description: "",
+      category: "",
+      houseNumber: "",
+      street: "",
+      city: "",
+      state: "",
+      pincode: "",
+      pay: "",
+      peopleNeeded: "",
+    });
+    
+    // Navigate after successful creation
+    router.push("/(seeker)/jobs");
+
+  } catch (error: any) {
+    console.error("❌ Error posting job:", error);
+    alert(error?.message || "Failed to post job");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <SafeAreaView className="flex-1 bg-white">
+      {/* Header */}
       <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-gray-200">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/(seeker)/jobs")}>
           <Image
             source={images.arrowBack}
             className="w-6 h-6"
@@ -104,6 +161,7 @@ export default function PostJobScreen() {
         <Text className="text-2xl font-bold text-gray-800">Post a Job</Text>
         <View className="w-6 h-6" />
       </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -132,60 +190,25 @@ export default function PostJobScreen() {
             className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
           />
 
-          {/* Category
-          <Text className="text-base font-semibold mb-2">Category</Text>         <TextInput
-            value={form.category}
-            onChangeText={(text) => handleFormChange("category", text)}
-            placeholder="E.g. Babysitting, Plumber, Tutor"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          /> */}
-
-          {/* House/Flat/Building No. */}
-          <Text className="text-base font-semibold mb-2">House/Flat/Building No.</Text>
-          <TextInput
-            value={form.houseNumber}
-            onChangeText={(text) => handleFormChange("houseNumber", text)}
-            placeholder="Enter House/Flat/Building No."
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          />
-
-          {/* Street/Address/Locality */}
-          <Text className="text-base font-semibold mb-2">Street/Address/Locality</Text>
-          <TextInput
-            value={form.street}
-            onChangeText={(text) => handleFormChange("street", text)}
-            placeholder="Enter Street/Address/Locality"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          />
-
-          {/* City/Town */}
-          <Text className="text-base font-semibold mb-2">City/Town</Text>
-          <TextInput
-            value={form.city}
-            onChangeText={(text) => handleFormChange("city", text)}
-            placeholder="Enter City/Town"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          />
-
-          {/* State */}
-          <Text className="text-base font-semibold mb-2">State</Text>
-          <TextInput
-            value={form.state}
-            onChangeText={(text) => handleFormChange("state", text)}
-            placeholder="Enter state"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          />
-
-          {/* Pincode */}
-          <Text className="text-base font-semibold mb-2">Pincode</Text>
-          <TextInput
-            value={form.pincode}
-            onChangeText={(text) => handleFormChange("pincode", text)}
-            placeholder="Enter pincode"
-            keyboardType="numeric"
-            maxLength={6}
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
-          />
+          {/* Address Fields */}
+          {[
+            { label: "House/Flat/Building No.", field: "houseNumber" },
+            { label: "Street/Address/Locality", field: "street" },
+            { label: "City/Town", field: "city" },
+            { label: "State", field: "state" },
+            { label: "Pincode", field: "pincode", keyboard: "numeric" },
+          ].map(({ label, field, keyboard }, i) => (
+            <View key={i}>
+              <Text className="text-base font-semibold mb-2">{label}</Text>
+              <TextInput
+                value={(form as any)[field]}
+                onChangeText={(text) => handleFormChange(field, text)}
+                placeholder={`Enter ${label}`}
+                keyboardType={keyboard as any || "default"}
+                className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+              />
+            </View>
+          ))}
 
           {/* Start Date */}
           <Text className="text-base font-semibold mb-2">Start Date</Text>
@@ -195,13 +218,10 @@ export default function PostJobScreen() {
           >
             <Text className="text-base">{startDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
-
           {showStartDatePicker && (
             <DateTimePicker
-              testID="dateTimePicker"
               value={startDate}
-              mode={"date"}
-              is24Hour={true}
+              mode="date"
               display="default"
               onChange={onChangeStartDate}
             />
@@ -215,13 +235,10 @@ export default function PostJobScreen() {
           >
             <Text className="text-base">{endDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
-
           {showEndDatePicker && (
             <DateTimePicker
-              testID="dateTimePicker"
               value={endDate}
-              mode={"date"}
-              is24Hour={true}
+              mode="date"
               display="default"
               onChange={onChangeEndDate}
               minimumDate={startDate}
@@ -253,9 +270,16 @@ export default function PostJobScreen() {
           {/* Submit Button */}
           <TouchableOpacity
             onPress={handlePostJob}
-            className="bg-blue-500 rounded-lg py-4 items-center mb-10"
+            disabled={loading}
+            className={`rounded-lg py-4 items-center mb-10 ${
+              loading ? "bg-gray-400" : "bg-blue-500"
+            }`}
           >
-            <Text className="text-white font-bold text-lg">Post Job</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-bold text-lg">Post Job</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

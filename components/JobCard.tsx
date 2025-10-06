@@ -4,7 +4,7 @@ import { MapPin } from "lucide-react-native";
 
 type JobCardProps = {
   title: string;
-  date: string;
+  peopleNeeded: string | number;
   price: number | string;
   duration: string;
   location?: string;
@@ -15,7 +15,7 @@ type JobCardProps = {
 
 export default function JobCard({
   title,
-  date,
+ peopleNeeded,
   price,
   duration,
   location,
@@ -49,12 +49,12 @@ export default function JobCard({
       activeOpacity={0.8}
     >
       {/* Duration Badge */}
-      <View className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full shadow-sm">
+      <View className="absolute top-2 left-2 bg-white px-2 py-2 rounded-full shadow-sm">
         <Text className="text-xs text-gray-600 font-medium">{duration}</Text>
       </View>
 
       {/* Icon/Avatar */}
-      <View className="w-16 h-16 bg-white rounded-full justify-center items-center mb-3 shadow-sm self-center">
+      <View className="w-16 h-16 bg-white rounded-full justify-center items-center mb-3 mt-8 shadow-sm self-center">
         {renderIcon()}
       </View>
 
@@ -70,7 +70,7 @@ export default function JobCard({
 
       {/* Location */}
       <View className="flex-row items-center justify-center mb-2">
-        <Text className="text-xs text-gray-600">{date}</Text>
+        <Text className="text-xs text-gray-600">Need :{peopleNeeded}</Text>
       </View>
 
       {/* Price */}

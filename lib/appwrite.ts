@@ -1,14 +1,25 @@
-import { Account, Avatars, Client, Databases, ID, Query } from "react-native-appwrite";
+import {
+  Account,
+  Avatars,
+  Client,
+  Databases,
+  ID,
+  Models,
+  Query,
+} from "react-native-appwrite";
 
+// ⚙️ Appwrite Configuration
 export const appwriteConfig = {
-  endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!, // e.g. https://cloud.appwrite.io/v1
+  endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!,
   projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
   platform: "com.workly.app",
   databaseId: "68ca6b03002783a0f2e1", // ✅ your database ID
-  userCollectionId: "user", // ✅ match with your Table ID (from screenshot)
+  userCollectionId: "user", // ✅ users collection ID
+  jobCollectionId: "post", // ✅ jobs collection ID
 };
 
-export const client = new Client();
+// 🔹 Initialize Appwrite Client
+const client = new Client();
 
 client
   .setEndpoint(appwriteConfig.endpoint)
@@ -17,30 +28,30 @@ client
 
 export const account = new Account(client);
 export const databases = new Databases(client);
-const avatars = new Avatars(client);
+export const avatars = new Avatars(client);
+
+// ======================================================================
+// 🧍‍♂️ USER AUTHENTICATION FUNCTIONS
+// ======================================================================
 
 // 🔹 Create a new user (Appwrite Auth + DB)
 export const createUser = async ({
   name,
   email,
   password,
-}: {
-  name: string;
-  email: string;
-  password: string;
-}) => {
+}: { name: string; email: string; password: string }) => {
   try {
     // Create account in Appwrite Auth
     const newAccount = await account.create(ID.unique(), email, password, name);
     if (!newAccount) throw new Error("Failed to create account");
 
-    // Create session (login immediately)
+    // Automatically log user in
     await signup({ email, password });
 
-    // Avatar initials
+    // Create avatar
     const avatarUrl = avatars.getInitialsURL(name);
 
-    // Save user profile in DB (users collection)
+    // Create user document in DB
     const newUserDoc = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
@@ -50,6 +61,7 @@ export const createUser = async ({
         name,
         email,
         avatar: avatarUrl,
+        createdAt: new Date().toISOString(),
       }
     );
 
@@ -61,38 +73,105 @@ export const createUser = async ({
 };
 
 // 🔹 Login user
-export const signup = async ({
-  email,
-  password,
-}: {
-  email: string;
-  password: string;
-}) => {
+export const signup = async ({ email, password }: { email: string; password: string }) => {
   try {
     return await account.createEmailPasswordSession(email, password);
-  } catch (e: any) {
+  } catch (e : any) {
     console.error("❌ Signup error:", e);
     throw new Error(e?.message || "Signup failed");
   }
 };
 
+// 🔹 Get current logged-in user
 export const getCurrentUser = async () => {
   try {
     const currentAccount = await account.get();
-    if(!currentAccount) throw new Error("No user logged in");
+    if (!currentAccount) throw new Error("No user logged in");
 
     const currentUser = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
-      [Query.equal("accountId", [currentAccount.$id])],
-    )
+      [Query.equal("accountId", [currentAccount.$id])]
+    );
 
-    if(!currentUser) throw Error;
+    if (!currentUser || currentUser.total === 0)
+      throw new Error("User not found");
 
     return currentUser.documents[0];
-   
-  } catch (e) {
-    console.error(e);
-    throw new Error(e as string);
+  } catch (e : any) {
+    console.error("❌ getCurrentUser error:", e);
+    throw new Error(e?.message || "Failed to fetch user");
   }
-}
+};
+
+// ======================================================================
+// 💼 JOB MANAGEMENT FUNCTIONS
+// ======================================================================
+
+// 🔹 Create (Post) a Job
+export const createJob = async (jobData: any) => {
+  try {
+    const response = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.jobCollectionId,
+      ID.unique(),
+      {
+        title: jobData.title,
+        description: jobData.description,
+        // category: jobData.category || "",
+        houseNumber: jobData.houseNumber,
+        street: jobData.street,
+        city: jobData.city,
+        state: jobData.state,
+        pincode: jobData.pincode,
+        startDate: jobData.startDate,
+        endDate: jobData.endDate,
+        pay: jobData.pay,
+        peopleNeeded: jobData.peopleNeeded,
+        userId: jobData.userId,
+        createdDate: new Date().toISOString(),
+      }
+    );
+    console.log("✅ Job Created:", response);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error creating job:", error);
+    throw new Error(error?.message || "Failed to create job");
+  }
+};
+
+// Fetch All Jobs
+export const getAllJobs = async () => {
+  try {
+    const jobs = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.jobCollectionId,
+      [Query.orderDesc("createdDate")] // Changed from createdAt
+    );
+    console.log("✅ Jobs fetched:", jobs.total);
+    return jobs.documents;
+  } catch (error) {
+    console.error("❌ Error fetching jobs:", error);
+    throw new Error("Failed to fetch jobs");
+  }
+};
+
+// Fetch Jobs by User
+export const getJobsByUser = async (userId: any) => {
+  try {
+    const jobs = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.jobCollectionId,
+      [Query.equal("userId", [userId]), Query.orderDesc("createdDate")] // Changed from createdAt
+    );
+    console.log("✅ User Jobs fetched:", jobs.total);
+    return jobs.documents;
+  } catch (error) {
+    console.error("❌ Error fetching user jobs:", error);
+    throw new Error("Failed to fetch user jobs");
+  }
+};
+
+// Export ID for external use
+export { ID };
+
