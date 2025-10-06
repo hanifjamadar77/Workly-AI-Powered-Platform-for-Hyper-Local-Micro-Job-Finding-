@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 
 import Search from "@/components/Search";
 import JobCard from "@/components/JobCard";
-import { getAllJobs } from "@/lib/appwrite"; // ✅ imported from your Appwrite file
+import { getAllJobs, getCurrentUser } from "@/lib/appwrite"; // ✅ imported from your Appwrite file
 
 export default function Jobs() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  
   // 🔹 Fetch jobs from Appwrite
   const fetchJobs = async () => {
     try {

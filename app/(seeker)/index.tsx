@@ -45,6 +45,7 @@ const Home = () => {
   const quickJobs = [
     {
       title: "Grass Cutting",
+      peopleNeeded: "1",
       date: "5/08/2025",
       price: "10.00",
       duration: "1 Aug",
@@ -55,6 +56,7 @@ const Home = () => {
     {
       title: "BabySitter for 1 day",
       description: "2 Child",
+      peopleNeeded: "1",
       date: "5/08/2025",
       price: "15.00",
       duration: "1 Aug",
@@ -65,6 +67,7 @@ const Home = () => {
     {
       title: "BabySitter for 1 day",
       description: "2 Child",
+      peopleNeeded: "1",
       date: "5/08/2025",
       price: "15.00",
       duration: "1 Aug",
@@ -75,6 +78,7 @@ const Home = () => {
     {
       title: "Grass Cutting",
       description: "24 sq ft",
+      peopleNeeded: "1",
       date: "5/08/2025",
       price: "10.00",
       duration: "1 Aug",

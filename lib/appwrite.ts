@@ -6,6 +6,7 @@ import {
   ID,
   Models,
   Query,
+  Storage,
 } from "react-native-appwrite";
 
 // ⚙️ Appwrite Configuration
@@ -16,6 +17,8 @@ export const appwriteConfig = {
   databaseId: "68ca6b03002783a0f2e1", // ✅ your database ID
   userCollectionId: "user", // ✅ users collection ID
   jobCollectionId: "post", // ✅ jobs collection ID
+  workerCollectionId: "profile", // ✅ workers collection ID
+  bucketId: "68e419d9000d5c34f15a", // ✅ your storage bucket ID
 };
 
 // 🔹 Initialize Appwrite Client
@@ -29,6 +32,7 @@ client
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const avatars = new Avatars(client);
+export const storage = new Storage(client);
 
 // ======================================================================
 // 🧍‍♂️ USER AUTHENTICATION FUNCTIONS
@@ -174,4 +178,94 @@ export const getJobsByUser = async (userId: any) => {
 
 // Export ID for external use
 export { ID };
+
+
+// ======================================================================
+// 🧑‍🔧 WORKER PROFILE FUNCTIONS
+// ======================================================================
+
+// Add Worker Profile Functions
+export const createWorkerProfile = async (profileData: any) => {
+  try {
+    const response = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.workerCollectionId,
+      ID.unique(),
+      {
+        userId: profileData.userId,
+        fullName: profileData.fullName,
+        email: profileData.email,
+        phone: profileData.phone,
+        about: profileData.about || "",
+        skills: profileData.skills || [],
+        experience: profileData.experience || "",
+        gender: profileData.gender || "",
+        address: profileData.address || "",
+        aadhar: profileData.aadhar || "",
+        // city: profileData.city || "",
+        // state: profileData.state || "",
+        availability: profileData.availability || "Available",
+        age: profileData.age || "",
+        profilePhoto: profileData.profilePhoto || "",
+        rating: 0,
+        completedJobs: 0,
+        createdDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
+      }
+    );
+    console.log("✅ Worker Profile Created:", response);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error creating worker profile:", error);
+    throw new Error(error?.message || "Failed to create worker profile");
+  }
+};
+
+export const updateWorkerProfile = async (profileId: string, profileData: any) => {
+  try {
+    const response = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.workerCollectionId,
+      profileId,
+      {
+        ...profileData,
+        updatedDate: new Date().toISOString(),
+      }
+    );
+    console.log("✅ Worker Profile Updated:", response);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error updating worker profile:", error);
+    throw new Error(error?.message || "Failed to update worker profile");
+  }
+};
+
+export const getWorkerProfileByUserId = async (userId: string) => {
+  try {
+    const profiles = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.workerCollectionId,
+      [Query.equal("userId", userId)]
+    );
+    return profiles.documents[0] || null;
+  } catch (error: any) {
+    console.error("❌ Error fetching worker profile:", error);
+    throw new Error(error?.message || "Failed to fetch worker profile");
+  }
+};
+
+export const getAllWorkerProfiles = async () => {
+  try {
+    const profiles = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.workerCollectionId,
+      [Query.orderDesc("rating"), Query.limit(100)]
+    );
+    console.log("✅ Worker Profiles fetched:", profiles.total);
+    return profiles.documents;
+  } catch (error: any) {
+    console.error("❌ Error fetching worker profiles:", error);
+    throw new Error(error?.message || "Failed to fetch worker profiles");
+  }
+};
 

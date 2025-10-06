@@ -1,118 +1,89 @@
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
-
-import JobProfileCard from "@/components/JobProfileCards";
-import Search from "@/components/Search";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import JobProfileCard from "@/components/JobProfileCards";
+import Search from "@/components/Search";
+import { getAllWorkerProfiles } from "@/lib/appwrite";
 
-export default function JobProfileScreen() {
-  
+// Define DefaultDocument type if not imported from elsewhere
+type DefaultDocument = {
+  $id: string;
+  fullName?: string;
+  skills?: string[];
+  rating?: number;
+  availability?: string;
+  // Add other fields as needed based on your data structure
+};
+
+export default function jobProfile() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [allProfiles, setAllProfiles] = useState<DefaultDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ Sample data
-  const recommendedProfiles = [
-    {
-      id: 1,
-      name: "Cris Ronaldo",
-      profession: "Plumber",
-      experience: "5 year experience",
-      rating: 4.8,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-green-100",
-    },
-    {
-      id: 2,
-      name: "Tyler Swift",
-      profession: "Baby Sitter",
-      experience: "2 year experience",
-      rating: 4.9,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b5a9b0e4?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-purple-100",
-    },
-  ];
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
-  const nearbyProfiles = [
-    {
-      id: 3,
-      name: "Neha Kakkar",
-      profession: "B-Tech Student",
-      experience: "1 year experience",
-      rating: 4.5,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-blue-100",
-    },
-    {
-      id: 4,
-      name: "Neha Kakkar",
-      profession: "B-Tech Student",
-      experience: "Fresher",
-      rating: 4.2,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-yellow-100",
-    },
-  ];
+  const fetchProfiles = async () => {
+    try {
+      setLoading(true);
+      const profiles = await getAllWorkerProfiles();
+      setAllProfiles(profiles);
+      console.log("✅ Fetched profiles:", profiles.length);
+    } catch (error) {
+      console.error("❌ Error fetching profiles:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const cityProfiles = [
-    {
-      id: 7,
-      name: "Neha Kakkar",
-      profession: "B-Tech Student",
-      experience: "2 year experience",
-      rating: 4.4,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-indigo-100",
-    },
-    {
-      id: 8,
-      name: "Neha Kakkar",
-      profession: "E-Tech Student",
-      experience: "1.5 year experience",
-      rating: 4.1,
-      isTopRated: false,
-      availability: "Available",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b5a9b0e4?w=150&h=150&fit=crop&crop=face",
-      backgroundColor: "bg-teal-100",
-    },
-  ];
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchProfiles();
+    setRefreshing(false);
+  };
 
-  // ✅ Navigate with router
-  const handleProfilePress = () => {
-    router.push("../supportPages/WorkerProfile"); // 👈 must match your folder
+  // Filter profiles based on search
+  const filteredProfiles = allProfiles.filter((profile) =>
+    profile.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    profile.skills?.some((skill: string) => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Categorize profiles
+  const topRatedProfiles = filteredProfiles.filter(p => typeof p.rating === "number" && p.rating >= 4.5).slice(0, 6);
+  const availableProfiles = filteredProfiles.filter(p => p.availability === 'Available').slice(0, 6);
+  const allOtherProfiles = filteredProfiles.slice(0, 10);
+
+  const handleProfilePress = (profile: { $id: any; }) => {
+    router.push({
+      pathname: "../supportPages/WorkerProfile",
+      params: { profileId: profile.$id }
+    });
   };
 
   const handleAddProfile = () => {
-    console.log("Add new profile");
+    router.push("/profileScreens/yourProfile");
   };
 
-  const searchClick = () =>{
-      
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#6366f1" />
+        <Text className="text-gray-600 mt-4">Loading profiles...</Text>
+      </SafeAreaView>
+    );
   }
-
-  const handleSearch = () => console.log("Searching...");
 
   return (
     <SafeAreaView className="flex-1 bg-white mb-20">
@@ -121,75 +92,87 @@ export default function JobProfileScreen() {
       {/* Header */}
       <View className="px-4 py-4">
         <Text className="text-xl font-bold text-gray-800 text-center">
-          Job Profile
+          Worker Profiles
         </Text>
       </View>
 
       {/* Search Bar */}
-     <Search
-            placeholder="Type something..."
-            onChangeText={handleSearch}
-            onPress={() => console.log("Pressed")}
-     />
+      <Search
+        placeholder="Search workers or skills..."
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        onPress={() => console.log("Searching...")}
+      />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Recommended Profiles */}
-        <View className="mb-6">
-          {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}> */}
-          <Text className="text-lg font-bold text-gray-800 px-4 mb-4 mt-4">
-            Recommended Profiles
-          </Text>
+      <ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Top Rated Profiles */}
+        {topRatedProfiles.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-lg font-bold text-gray-800 px-4 mb-4 mt-4">
+              ⭐ Top Rated Workers
+            </Text>
             <View className="flex-row flex-wrap justify-evenly">
-              {recommendedProfiles.map((profile) => (
+              {topRatedProfiles.map((profile) => (
                 <JobProfileCard
-                  key={profile.id}
+                  key={profile.$id}
                   profile={profile}
                   onPress={handleProfilePress}
-                  backgroundColor={profile.backgroundColor}
                 />
               ))}
             </View>
-          {/* </ScrollView> */}
-        </View>
-
-        {/* In Your Area */}
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
-            In your Area
-          </Text>
-          <View className="flex-row flex-wrap justify-evenly">
-            {nearbyProfiles.map((profile) => (
-              <JobProfileCard
-                key={profile.id}
-                profile={profile}
-                onPress={handleProfilePress}
-                backgroundColor={profile.backgroundColor}
-              />
-            ))}
           </View>
-        </View>
+        )}
 
-        {/* In Your City */}
+        {/* Available Now */}
+        {availableProfiles.length > 0 && (
+          <View className="mb-6">
+            <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
+              ✅ Available Now
+            </Text>
+            <View className="flex-row flex-wrap justify-evenly">
+              {availableProfiles.map((profile) => (
+                <JobProfileCard
+                  key={profile.$id}
+                  profile={profile}
+                  onPress={handleProfilePress}
+                />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* All Workers */}
         <View className="mb-8">
           <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
-            In Your City
+            All Workers
           </Text>
-          <View className="flex-row flex-wrap justify-evenly">
-            {cityProfiles.map((profile) => (
-              <JobProfileCard
-                key={profile.id}
-                profile={profile}
-                onPress={handleProfilePress}
-                backgroundColor={profile.backgroundColor}
-              />
-            ))}
-          </View>
+          {allOtherProfiles.length === 0 ? (
+            <Text className="text-center text-gray-500 py-10">
+              No worker profiles found
+            </Text>
+          ) : (
+            <View className="flex-row flex-wrap justify-evenly">
+              {allOtherProfiles.map((profile) => (
+                <JobProfileCard
+                  key={profile.$id}
+                  profile={profile}
+                  onPress={handleProfilePress}
+                />
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
       {/* Floating Add Button */}
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 bg-blue-500 rounded-full justify-center items-center shadow-lg"
+        className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full justify-center items-center shadow-lg"
         onPress={handleAddProfile}
         activeOpacity={0.8}
       >
