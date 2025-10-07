@@ -6,6 +6,7 @@ import {
   ID,
   Models,
   Query,
+  QueryTypesList,
   Storage,
 } from "react-native-appwrite";
 
@@ -45,17 +46,20 @@ export const createUser = async ({
   password,
 }: { name: string; email: string; password: string }) => {
   try {
-    // Create account in Appwrite Auth
+    // 1️⃣ Create Appwrite Auth account
     const newAccount = await account.create(ID.unique(), email, password, name);
     if (!newAccount) throw new Error("Failed to create account");
 
-    // Automatically log user in
+    // 2️⃣ Login to activate session
     await signup({ email, password });
 
-    // Create avatar
+    // 3️⃣ Wait for session to become active
+    await account.get();
+
+    // 4️⃣ Create avatar
     const avatarUrl = avatars.getInitialsURL(name);
 
-    // Create user document in DB
+    // 5️⃣ Create user document
     const newUserDoc = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
@@ -65,13 +69,13 @@ export const createUser = async ({
         name,
         email,
         avatar: avatarUrl,
-        createdAt: new Date().toISOString(),
       }
     );
 
+    console.log("✅ User created in DB:", newUserDoc.$id);
     return newUserDoc;
   } catch (e: any) {
-    console.error("❌ Error in createUser:", e);
+    console.error("❌ Error in createUser:", e.message || e);
     throw new Error(e?.message || "Unknown error while creating user");
   }
 };
@@ -147,19 +151,48 @@ export const createJob = async (jobData: any) => {
 // Fetch All Jobs
 export const getAllJobs = async () => {
   try {
-    const jobs = await databases.listDocuments(
+    // Step 1: Fetch all job posts
+    const jobDocs = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.jobCollectionId,
-      [Query.orderDesc("createdDate")] // Changed from createdAt
+      [Query.orderDesc("createdDate")]
     );
-    console.log("✅ Jobs fetched:", jobs.total);
-    return jobs.documents;
+
+    console.log("✅ Jobs fetched:", jobDocs.total);
+
+    // Step 2: For each job, get the user info from users collection
+    const jobsWithUser = await Promise.all(
+      jobDocs.documents.map(async (job) => {
+        let avatarUrl = null;
+        let userName = "Unknown";
+
+        try {
+          if (job.userId) {
+            const userDoc = await databases.getDocument(
+              appwriteConfig.databaseId,
+              appwriteConfig.userCollectionId, // users collection ID
+              job.userId
+            );
+
+            if (userDoc) {
+              userName = userDoc.name || "Unknown";
+              avatarUrl = userDoc.avatar || null; // stored URL or file preview
+            }
+          }
+        } catch (err) {
+          console.warn(`⚠️ Failed to fetch user for job: ${job.$id}`);
+        }
+
+        return { ...job, avatarUrl, userName };
+      })
+    );
+
+    return jobsWithUser;
   } catch (error) {
     console.error("❌ Error fetching jobs:", error);
     throw new Error("Failed to fetch jobs");
   }
 };
-
 // Fetch Jobs by User
 export const getJobsByUser = async (userId: any) => {
   try {
@@ -240,7 +273,7 @@ export const updateWorkerProfile = async (profileId: string, profileData: any) =
   }
 };
 
-export const getWorkerProfileByUserId = async (userId: string) => {
+export const getWorkerProfileByUserId = async (userId: string | number | boolean | QueryTypesList) => {
   try {
     const profiles = await databases.listDocuments(
       appwriteConfig.databaseId,

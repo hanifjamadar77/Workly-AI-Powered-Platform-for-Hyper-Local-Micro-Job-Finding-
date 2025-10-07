@@ -55,8 +55,16 @@ export default function Login() {
         title="Login"
         onPress={onSubmit}
         isLoading={isSubmitting} style={undefined} textStyle={undefined} leftIcon={undefined}      />
+        
+        <View className='items-end right-4'>
+          <Link href="/(auth)/forgot_password">
+          <Text className='text-blue-600 text-base font-semibold'>Forget Password</Text>
+          </Link>
+        </View>
 
-      <View className="flex-row justify-center mt-5">
+        
+
+      <View className="flex-row justify-center mt-2">
         <Text>Don't have an account? </Text>
         <Link href="/(auth)/signup">
           <Text className="text-blue-500 font-semibold">Sign Up</Text>

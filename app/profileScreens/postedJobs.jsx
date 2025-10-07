@@ -62,7 +62,7 @@ export default function PostedJobsScreen() {
   const JobCard = ({ job }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
-      onPress={() => navigation.navigate('JobDetails', { job })}
+      onPress={() => router.push(`/supportPages/jobDetails?jobId=${job.$id}`)}
     >
       <View className="flex-row justify-between items-start mb-3">
         <View className="flex-1">
@@ -97,14 +97,14 @@ export default function PostedJobsScreen() {
         <Text className="text-xs text-gray-500">
           Posted: {new Date(job.createdDate).toLocaleDateString()}
         </Text>
-        <View className="flex-row">
+        {/* <View className="flex-row">
           <TouchableOpacity className="bg-indigo-100 px-3 py-2 rounded-lg mr-2">
             <Text className="text-indigo-600 text-xs font-medium">Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity className="bg-red-100 px-3 py-2 rounded-lg">
             <Text className="text-red-600 text-xs font-medium">Delete</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     </TouchableOpacity>
   );
@@ -147,7 +147,7 @@ export default function PostedJobsScreen() {
               </Text>
               <TouchableOpacity
                 className="bg-indigo-600 px-6 py-3 rounded-xl"
-                onPress={() => router.replace('/(seekers)/post')}
+                onPress={() => router.replace('/(seeker)/post')}
               >
                 <Text className="text-white font-semibold">Post Your First Job</Text>
               </TouchableOpacity>

@@ -1,8 +1,11 @@
-import { useNavigation } from "@react-navigation/native";
-import { useLayoutEffect } from "react";
+import { images } from "@/constants";
+import { appwriteConfig, databases } from "@/lib/appwrite";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Query } from "appwrite";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
-  Image,
   ScrollView,
   StatusBar,
   Text,
@@ -10,171 +13,145 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { images } from "@/constants";
+import Header from "../../components/profileHeader";
 
-export default function JobDetails({ route }) {
+export default function JobDetailsPage(props) {
+  const routeFromProp = props?.route;
+  const routeHook = useRoute();
+  const route = routeFromProp ?? routeHook;
+  const { jobId } = route?.params || {}; // fetch job by jobId
+  const [jobData, setJobData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: "Job Details" });
-  }, [navigation]);
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        let jobDoc = null;
+        try {
+          jobDoc = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.jobCollectionId,
+            jobId
+          );
+        } catch {
+          const jobList = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.jobsCollectionId,
+            [Query.equal("userId", [jobId])]
+          );
+          if (jobList.total > 0) jobDoc = jobList.documents[0];
+        }
+        if (jobDoc) setJobData(jobDoc);
+        else console.warn("⚠️ Job not found:", jobId);
+      } catch (err) {
+        console.error("❌ Error fetching job:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Get job data from navigation params
-  const { job } = route?.params || {};
+    if (jobId) fetchJob();
+  }, [jobId]);
 
-  // Sample job data if none provided
-  const jobData = job || {
-    id: 1,
-    title: "Home Painting",
-    description:
-      "2 bed rooms\nI want to paint two bed rooms. Paint is available just want a person having knowledge of painting . If any one is available please contact I want to complete this task before 14 Aug. Money we will discuss.",
-    image:
-      "https://imgs.search.brave.com/9l7MicBRyeYG86g8jD4zP-ZvK2lRn-96_X5LPSmcEqI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/Zmxvd3JpZ2h0cGx1/bWJlcnN3b2tpbmcu/Y28udWsvd3AtY29u/dGVudC91cGxvYWRz/LzIwMjMvMTAvQmF0/aHJvb21fRml0dGVy/c19Xb2tpbmdfR1Uy/MS5qcGc",
-    employer: {
-      name: "Harry Peter",
-      phone: "+91 9857204525",
-      address: "near main bus stop, guru krupa, 521",
-      location: {
-        latitude: 18.5204,
-        longitude: 73.8567,
-      },
-    },
-  };
-
-  const handleRequest = () => {
-    Alert.alert(
-      "Request Sent!",
-      "Your request has been sent to the employer. They will contact you soon.",
-      [{ text: "OK" }]
+  if (loading)
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="blue" />
+        <Text className="text-gray-600 mt-2">Loading job details...</Text>
+      </SafeAreaView>
     );
-  };
 
-  const handleCall = () => {
-    Alert.alert(
-      "Call Employer",
-      `Do you want to call ${jobData.employer.name}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Call", onPress: () => console.log("Calling...") },
-      ]
+  if (!jobData)
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <Text className="text-gray-600">Job details not found</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="mt-4 bg-indigo-600 px-6 py-3 rounded-xl"
+        >
+          <Text className="text-white font-semibold">Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
     );
-  };
 
   return (
-    <SafeAreaView className="flex-1 flex-col bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <Header title="Job Details" />
 
-{/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 bg-white"> 
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center"
-        >
-           <Image className = "size-5" source={images.arrowBack}/>
-        </TouchableOpacity>
-        <Text className="text-lg font-semibold text-gray-800">Job Details</Text>
-        <TouchableOpacity className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center">
-          <Text className="text-lg">⋯</Text>
-        </TouchableOpacity>
-      </View>
-
-
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} style={{margin : "8"}}>
-        {/* Job Image */}
-        <View className="px-4 mb-4">
-          <View className="rounded-2xl overflow-hidden">
-            <Image
-              source={{ uri: jobData.image }}
-              style={{ width: "100%", height: 200 }}
-              resizeMode="cover"
-            />
-          </View>
-        </View>
-
-        {/* Request Button */}
-        <View style={{marginBottom : "10",}}>
-          <TouchableOpacity
-            style={{
-              padding: "10",
-              backgroundColor: "lightblue",
-              borderRadius: 20,
-              margin : "10",
-            }}
-            onPress={handleRequest}
-            activeOpacity={0.8}
-          >
-            <Text  style = {{ 
-              color: "gray",
-              fontWeight: "bold",
-              fontSize: 18,
-              textAlign: 'center',
-              }}>
-              REQUEST
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Job Title */}
-        <View className="px-4 mb-4">
-          <Text className="text-2xl font-bold text-gray-900 mb-2">
+        {/* Job Info */}
+        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
+          <Text className="text-xl font-bold text-gray-800 mb-2">
             {jobData.title}
           </Text>
-        </View>
 
-        {/* Job Description */}
-        <View className="px-4 mb-8">
-          <Text className="text-base text-gray-700 leading-6">
-            {jobData.description}
-          </Text>
-        </View>
+          <Text className="text-gray-600 mb-4">{jobData.description}</Text>
 
-        {/* Personal Details Section */}
-        <View className="px-4 mb-6">
-          <Text style={
-            {
-              // color: "gray",
-              fontWeight: "bold",
-              fontSize: 18,
-              textAlign: 'start',
-            }
-          }>
-            Personal Details
-          </Text>
+          <View className="flex-row justify-between mb-3">
+            <Text className="text-gray-600 font-medium">Pay:</Text>
+            <Text className="text-gray-800 font-bold">{jobData.pay}</Text>
+          </View>
 
-          {/* Employer Info */}
-          <View className="bg-gray-50 rounded-2xl p-4 mb-4">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-semibold text-gray-800">
-                {jobData.employer.name}
-              </Text>
-              <TouchableOpacity
-                onPress={handleCall}
-                className="bg-green-500 px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white text-sm font-medium">Call</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text className="text-gray-600 mb-2">
-              📞 {jobData.employer.phone}
-            </Text>
-
-            <Text className="text-gray-600">
-              📍 Address: {jobData.employer.address}
+          <View className="flex-row justify-between mb-3">
+            <Text className="text-gray-600 font-medium">People Needed:</Text>
+            <Text className="text-gray-800 font-bold">
+              {jobData.peopleNeeded || 1}
             </Text>
           </View>
 
-          {/* Map Placeholder */}
-          <View className="rounded-2xl overflow-hidden h-48 bg-gray-200 justify-center items-center">
-            <View className="bg-white rounded-lg p-4 shadow-lg">
-              <View className="w-12 h-12 bg-red-500 rounded-full justify-center items-center mb-2">
-                <Text className="text-white text-lg">📍</Text>
-              </View>
-              <Text className="text-sm text-gray-600 text-center">
-                Location on Map
-              </Text>
-            </View>
+          <View className="flex-row justify-between mb-3">
+            <Text className="text-gray-600 font-medium">Start Date:</Text>
+            <Text className="text-gray-800 font-bold">
+              {jobData.startDate
+                ? new Date(jobData.startDate).toLocaleDateString()
+                : "N/A"}
+            </Text>
           </View>
+
+          <View className="flex-row justify-between mb-3">
+            <Text className="text-gray-600 font-medium">End Date:</Text>
+            <Text className="text-gray-800 font-bold">
+              {jobData.endDate
+                ? new Date(jobData.endDate).toLocaleDateString()
+                : "N/A"}
+            </Text>
+          </View>
+
+          <View className="mb-3">
+            <Text className="text-gray-600 font-medium mb-1">Address:</Text>
+            <Text className="text-gray-800">
+              {jobData.houseNumber}, {jobData.street}
+            </Text>
+            <Text className="text-gray-800">
+              {jobData.city}, {jobData.state} - {jobData.pincode}
+            </Text>
+          </View>
+
+          <View className="flex-row justify-between mt-4">
+            <Text className="text-gray-600">Posted By:</Text>
+            <Text className="text-gray-800 font-bold">{jobData.userId}</Text>
+          </View>
+
+          <View className="flex-row justify-between mt-2">
+            <Text className="text-gray-600">Created On:</Text>
+            <Text className="text-gray-800 font-bold">
+              {new Date(jobData.createdDate).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Action Button */}
+        <View className="flex-row mx-4 mt-6 mb-8">
+          <TouchableOpacity
+            onPress={() => Alert.alert("Apply", "Apply flow not implemented")}
+            className="flex-1 bg-indigo-600 py-4 rounded-xl"
+          >
+            <Text className="text-white text-center font-semibold">
+              Apply for Job
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

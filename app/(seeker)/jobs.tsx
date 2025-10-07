@@ -1,17 +1,17 @@
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
   ActivityIndicator,
+  ScrollView,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
-import Search from "@/components/Search";
 import JobCard from "@/components/JobCard";
-import { getAllJobs, getCurrentUser } from "@/lib/appwrite"; // ✅ imported from your Appwrite file
+import Search from "@/components/Search";
+import { getAllJobs } from "@/lib/appwrite"; // ✅ imported from your Appwrite file
 
 export default function Jobs() {
   const router = useRouter();
@@ -19,7 +19,6 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  
   // 🔹 Fetch jobs from Appwrite
   const fetchJobs = async () => {
     try {
@@ -90,6 +89,7 @@ export default function Jobs() {
                       toSentenceCase(job.city) || ""
                     }`}
                     peopleNeeded={job.peopleNeeded || "1"}
+                    icon={job.avatarUrl} // ✅ avatar field from Appwrite
                     backgroundColor="bg-green-100"
                     onPress={() =>
                       router.push({
@@ -97,7 +97,6 @@ export default function Jobs() {
                         params: { jobId: job.$id },
                       })
                     }
-                    icon={""}
                   />
                 </View>
               ))}

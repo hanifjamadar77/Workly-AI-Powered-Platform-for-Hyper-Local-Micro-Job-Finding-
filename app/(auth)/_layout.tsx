@@ -16,7 +16,9 @@ export default function TabLayout() {
       <ScrollView className='bg-white h-full' keyboardShouldPersistTaps='handled'>
         <View className='w-full relative' style={{ height: Dimensions.get('screen').height / 2.25 }}>
           <ImageBackground source={images.keyBg} className='size-full rounded-b-lg' resizeMode='stretch' />
-          {/* <Image source={images.man} className="self-center size-48 absolute -bottom-16 z-10" /> */}
+          <View className='absolute self-center my-72 rounded-full bg-blue-100'>
+          <Image source={images.logo} className="self-center size-48 z-10" />
+          </View>
         </View>
         
         <Slot />

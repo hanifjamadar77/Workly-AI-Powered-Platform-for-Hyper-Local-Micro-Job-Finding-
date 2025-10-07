@@ -1,230 +1,218 @@
-import { useNavigation } from '@react-navigation/native';
-import {
-    Alert,
-    Image,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { images } from "@/constants";
+import { appwriteConfig, databases } from "@/lib/appwrite";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Query } from "appwrite";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Linking,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Header from "../../components/profileHeader";
 
-export default function WorkerProfileScreen({ route }) {
+export default function WorkerProfileTest(props) {
+  const routeFromProp = props?.route;
+  const routeHook = useRoute();
+  const route = routeFromProp ?? routeHook;
+  const { profileId } = route?.params || {};
+  const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  const { profile } = route?.params || {};
 
-  // Extended profile data (in real app, fetch from API)
-  const workerData = {
-    ...profile,
-    about: "Hello, my name is [Your Name]. I am a professional plumber with experience in installing, repairing, and maintaining water supply and drainage systems. I specialize in fixing leaks, unclogging drains, and installing new fixtures for both homes and businesses. I am dedicated to providing reliable service and high-quality workmanship.",
-    experience: [
-      {
-        id: 1,
-        title: "Plumber | XYZ Plumbing Services | 2 Years",
-        description: "Installed, repaired, and maintained residential and commercial plumbing systems including water supply lines, drainage systems, and fixtures."
-      },
-      {
-        id: 2,
-        title: "Plumber | ABC Home Solutions | 3 Years",
-        description: "Installed and repaired piping systems for water supply, heating, and sanitation in homes and small businesses."
-      }
-    ],
-    address: {
-      name: "Mr. Cris Ronaldo",
-      flat: "Flat No. 204, Sai Residency Apartment",
-      area: "Shivaji Nagar, Near D.H. Ration College",
-      city: "Pune",
-      state: "Maharashtra, India",
-      mobile: "+91 98765 43210",
-      email: "crisronaldo@gmail.com"
-    },
-    photos: [
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200",
-      "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=300&h=200",
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300&h=200"
-    ],
-    skills: ["Plumbing", "Pipe Installation", "Leak Repair", "Drain Cleaning", "Fixture Installation"],
-    rating: 4.8,
-    reviewCount: 156,
-    completedJobs: 89,
-    responseTime: "Within 2 hours"
-  };
-
-  const handleHire = () => {
-    Alert.alert('Hire Worker', `Send job request to ${workerData.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Send Request', onPress: () => console.log('Hiring...') }
-    ]);
-  };
-
+  // ✅ Action Handlers
   const handleCall = () => {
-    Alert.alert('Call Worker', `Call ${workerData.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Call', onPress: () => console.log('Calling...') }
-    ]);
+    if (worker?.phone) {
+      Linking.openURL(`tel:${worker.phone}`).catch(() =>
+        Alert.alert("Error", "Unable to place call")
+      );
+    } else {
+      Alert.alert("No phone", "This worker has no phone number");
+    }
   };
 
-  const handleMessage = () => {
-    navigation.navigate('Chat', { worker: workerData });
+  const handleEmail = () => {
+    if (worker?.email) {
+      Linking.openURL(`mailto:${worker.email}`).catch(() =>
+        Alert.alert("Error", "Unable to open email client")
+      );
+    } else {
+      Alert.alert("No email", "This worker has no email address");
+    }
   };
+
+  // const handleMessage = () => Alert.alert('Message', 'Messaging is not implemented yet.');
+  const handleHire = () =>
+    Alert.alert("Hire", "Hire flow is not implemented yet.");
+
+  useEffect(() => {
+    const fetchWorker = async () => {
+      try {
+        console.log("🔍 Fetching worker for profileId:", profileId);
+
+        let workerDoc = null;
+        try {
+          workerDoc = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.workerCollectionId,
+            profileId
+          );
+        } catch {
+          const profileList = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.workerCollectionId,
+            [Query.equal("userId", [profileId])]
+          );
+          if (profileList.total > 0) workerDoc = profileList.documents[0];
+        }
+
+        if (workerDoc) setWorker(workerDoc);
+        else
+          console.warn("⚠️ No worker found for profileId/userId:", profileId);
+      } catch (err) {
+        console.error("❌ Error fetching worker:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (profileId) fetchWorker();
+  }, [profileId]);
+
+  if (loading)
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="blue" />
+        <Text className="text-gray-600 mt-2">Loading profile...</Text>
+      </SafeAreaView>
+    );
+
+  if (!worker)
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <Text className="text-gray-600">Worker profile not found</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          className="mt-4 bg-indigo-600 px-6 py-3 rounded-xl"
+        >
+          <Text className="text-white font-semibold">Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-    <StatusBar barStyle="dark-content" backgroundColor="white" />
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 bg-white"> 
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()}
-          className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center"
-        >
-          {/* <Text className="text-lg">←</Text> */}
-          <Image className = "size-5" source={images.arrowBack}/>
-        </TouchableOpacity>
-        <Text className="text-lg font-semibold text-gray-800">Worker Profile</Text>
-        <TouchableOpacity className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center">
-          <Text className="text-lg">⋯</Text>
-        </TouchableOpacity>
-      </View>
-
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <View className="items-center">
-            <View className="w-20 h-20 bg-red-500 rounded-full justify-center items-center mb-3">
-              <Image
-                source={{ uri: workerData.avatar }}
-                className="w-18 h-18 rounded-full"
-                resizeMode="cover"
-              />
-            </View>
-            <Text className="text-xl font-bold text-gray-800 mb-1">
-              {workerData.name}
-            </Text>
-            <Text className="text-gray-600 mb-2">{workerData.profession}</Text>
-            
-            {/* Stats Row */}
-            <View className="flex-row items-center space-x-6 mb-4">
-              <View className="items-center">
-                <Text className="text-lg font-bold text-gray-800">{workerData.rating}</Text>
-                <Text className="text-xs text-gray-600">Rating</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-lg font-bold text-gray-800">{workerData.completedJobs}</Text>
-                <Text className="text-xs text-gray-600">Jobs Done</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-lg font-bold text-gray-800">{workerData.reviewCount}</Text>
-                <Text className="text-xs text-gray-600">Reviews</Text>
-              </View>
-            </View>
+        <Header title="Worker Profile" />
 
-            {/* Response Time */}
-            <View className="bg-green-100 px-3 py-2 rounded-full">
-              <Text className="text-green-700 text-sm font-medium">
-                Responds {workerData.responseTime}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* About Section */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-bold text-gray-800 mb-3">About</Text>
-          <Text className="text-gray-700 leading-6">
-            {workerData.about}
+        {/* Profile */}
+        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm items-center">
+          <Image
+            source={{
+              uri: worker.profilePhoto || "https://via.placeholder.com/150",
+            }}
+            className="w-20 h-20 rounded-full mb-3"
+            resizeMode="cover"
+          />
+          <Text className="text-xl font-bold text-gray-800 mb-1">
+            {worker.fullName}
           </Text>
-        </View>
 
-        {/* Skills */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-bold text-gray-800 mb-3">Skills</Text>
-          <View className="flex-row flex-wrap">
-            {workerData.skills.map((skill, index) => (
-              <View key={index} className="bg-blue-100 px-3 py-2 rounded-full mr-2 mb-2">
-                <Text className="text-blue-700 text-sm">{skill}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+           <Text className="text-gray-600 mb-4 mt-4 text-center">
+            {worker.about || "No bio available"}
+          </Text>
 
-        {/* Experience Section */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-bold text-gray-800 mb-4">Experience</Text>
-          {workerData.experience.map((exp) => (
-            <View key={exp.id} className="mb-4 last:mb-0">
-              <Text className="text-base font-semibold text-gray-800 mb-2">
-                {exp.title}
-              </Text>
-              <Text className="text-gray-600 text-sm leading-5">
-                {exp.description}
-              </Text>
-            </View>
-          ))}
-        </View>
+          <Text className="text-gray-600 mb-2 font-bold">
+            {worker.experience} Experience
+          </Text>
 
-        {/* Address Section */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-bold text-gray-800 mb-4">Address</Text>
-          <View className="space-y-2">
-            <Text className="text-base font-semibold text-gray-800">
-              {workerData.address.name}
-            </Text>
-            <Text className="text-gray-600">{workerData.address.flat}</Text>
-            <Text className="text-gray-600">{workerData.address.area}</Text>
-            <Text className="text-gray-600">
-              {workerData.address.city}, {workerData.address.state}
-            </Text>
-            <Text className="text-gray-600 mt-2">
-              <Text className="font-medium">Mobile:</Text> {workerData.address.mobile}
-            </Text>
-            <Text className="text-gray-600">
-              <Text className="font-medium">Email:</Text> {workerData.address.email}
+          <View
+            className={`px-3 py-1 rounded-full mb-3 ${
+              worker.availability === "Available"
+                ? "bg-green-100"
+                : worker.availability === "Busy"
+                ? "bg-yellow-100"
+                : "bg-gray-100"
+            }`}
+          >
+            <Text
+              className={`text-sm font-medium ${
+                worker.availability === "Available"
+                  ? "text-green-700"
+                  : worker.availability === "Busy"
+                  ? "text-yellow-700"
+                  : "text-gray-700"
+              }`}
+            >
+              {worker.availability}
             </Text>
           </View>
-        </View>
 
-        {/* Photos Section */}
-        <View className="bg-white mx-4 mt-4 rounded-2xl p-6 shadow-sm">
-          <Text className="text-lg font-bold text-gray-800 mb-4">Photos</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row">
-              {workerData.photos.map((photo, index) => (
-                <TouchableOpacity key={index} className="mr-3">
-                  <Image
-                    source={{ uri: photo }}
-                    className="w-24 h-24 rounded-xl"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-              ))}
+          {/* Stats */}
+          <View className="flex-row justify-between items-center mb-4 px-6">
+            <View className="items-center flex-1">
+              <Text className="text-lg font-bold text-gray-800">
+                {worker.rating?.toFixed(1) || "0.0"}
+              </Text>
+              <Text className="text-xs text-gray-600">Rating</Text>
             </View>
-          </ScrollView>
+
+            <View className="items-center flex-1">
+              <Text className="text-lg font-bold text-gray-800">
+                {worker.completedJobs || 0}
+              </Text>
+              <Text className="text-xs text-gray-600">Jobs Done</Text>
+            </View>
+
+            <View className="items-center flex-1">
+              <Text className="text-lg font-bold text-gray-800">
+                {worker.age || "N/A"}
+              </Text>
+              <Text className="text-xs text-gray-600">Age</Text>
+            </View>
+          </View>
+
+          {worker.gender && (
+            <View className="bg-indigo-100 px-4 py-1 rounded-full self-center ml-6 mb-2">
+              <Text className="text-indigo-700 text-sm font-medium">
+                {worker.gender}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Action Buttons */}
-        <View className="flex-row mx-4 mt-4 mb-8 space-x-3">
+        <View className="flex-row mx-4  mt-4 mb-8 space-x-3">
           <TouchableOpacity
-            className="flex-1 bg-green-500 py-4 rounded-xl"
+            className="flex-1 bg-green-500 py-4 rounded-xl mr-4"
             onPress={handleCall}
           >
-            <Text className="text-white text-center font-semibold">Call</Text>
+            <Text className="text-white text-center font-semibold">
+              📞 Call
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-gray-500 py-4 rounded-xl"
-            onPress={handleMessage}
+            className="flex-1 bg-indigo-600 py-4 rounded-xl"
+            onPress={handleEmail}
           >
-            <Text className="text-white text-center font-semibold">Message</Text>
+            <Text className="text-white text-center font-semibold">
+              💬 Message
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Floating Hire Button */}
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 bg-blue-500 rounded-full justify-center items-center shadow-lg"
+        className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full justify-center items-center shadow-lg"
         onPress={handleHire}
-        activeOpacity={0.8}
       >
         <Text className="text-white text-2xl">+</Text>
       </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from "expo-router";
+
 import {
   View,
   Text,
@@ -22,7 +22,6 @@ import {
 
 export default function WorkerProfileEdit() {
   const navigation = useNavigation();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -40,6 +39,7 @@ export default function WorkerProfileEdit() {
     state: '',
     availability: 'Available',
     age: '',
+    completedJobs : '',
     profilePhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   });
 
@@ -77,6 +77,7 @@ export default function WorkerProfileEdit() {
           // state: existingProfile.state || '',
           availability: existingProfile.availability || 'Available',
           age: existingProfile.age || '',
+          completedJobs : existingProfile.completedJobs || '',
           profilePhoto: existingProfile.profilePhoto || user.avatar,
         });
         setSkills(existingProfile.skills || []);
@@ -357,6 +358,17 @@ export default function WorkerProfileEdit() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          <View className="mb-5">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Completed Jobs</Text>
+            <TextInput
+              className="bg-gray-100 px-4 py-3 rounded-xl text-base"
+              value={formData.completedJobs}
+              onChangeText={(text) => setFormData({...formData, completedJobs: text})}
+              placeholder="Number of completed jobs"
+              keyboardType="numeric"
+            />
           </View>
 
           <View className="mb-5">

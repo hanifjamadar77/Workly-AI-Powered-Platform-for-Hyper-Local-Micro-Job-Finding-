@@ -3,33 +3,31 @@ import { Dimensions, Image, ScrollView, TouchableOpacity, View } from "react-nat
 
 const { width } = Dimensions.get("window");
 
-export default function ImageSlider({
-  images,
-  autoPlayInterval = 3000,
-}) {
+export default function ImageSlider({ images, autoPlayInterval = 3000 }) {
   const scrollViewRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Auto-scroll
   useEffect(() => {
-    if (!images || images.length === 0) return;
+    if (!images || images.length <= 1) return;
 
     const interval = setInterval(() => {
-      const nextIndex = (activeIndex + 1) % images.length;
-      setActiveIndex(nextIndex);
-      
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({
+      setActiveIndex(prevIndex => {
+        const nextIndex = (prevIndex + 1) % images.length;
+        scrollViewRef.current?.scrollTo({
           x: nextIndex * (width - 40),
           animated: true,
         });
-      }
+        return nextIndex;
+      });
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [activeIndex, images, autoPlayInterval]);
+  }, [images, autoPlayInterval]);
 
   if (!images || images.length === 0) return null;
 
+  // Update activeIndex when user scrolls manually
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / (width - 40));
@@ -47,7 +45,11 @@ export default function ImageSlider({
         className="rounded-lg"
       >
         {images.map((image, index) => (
-          <View key={index} className="overflow-hidden rounded-lg mx-2" style={{ width: width - 55 }}>
+          <View
+            key={index}
+            className="overflow-hidden rounded-lg mx-2"
+            style={{ width: width - 40 }}
+          >
             <Image
               source={{ uri: image }}
               className="w-full h-60"
@@ -56,8 +58,8 @@ export default function ImageSlider({
           </View>
         ))}
       </ScrollView>
-      
-      {/* Dots Indicator */}
+
+      {/* Dots */}
       <View className="flex-row justify-center mt-3">
         {images.map((_, index) => (
           <TouchableOpacity

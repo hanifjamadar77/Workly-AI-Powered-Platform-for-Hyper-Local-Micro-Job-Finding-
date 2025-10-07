@@ -22,15 +22,6 @@ export default function IntroPage4() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
-      {/* Header */}
-      <View className="flex-row justify-between items-center px-6 py-4">
-        <Text className="text-gray-400 text-sm">Info page 4</Text>
-        <TouchableOpacity onPress={handleSkip}>
-          <Text className="text-gray-600 text-base">Skip</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Main Content */}
       <View className="flex-1 justify-center items-center px-6">
         {/* Character Image */}

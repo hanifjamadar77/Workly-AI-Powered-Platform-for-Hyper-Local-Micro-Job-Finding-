@@ -42,53 +42,6 @@ const Home = () => {
     "https://imgs.search.brave.com/67xJukDZvUzPb_fezO26cq6Ov9DH78VRkIHhAvU1LVk/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by90ZWFtLXlvdW5n/LXZvbHVudGVlcnMt/cGFydGljaXBhdGlu/Zy1vdXRkb29yLWNs/ZWFudXAtY2hhcml0/YWJsZS1jYXVzZS1j/b25jZXB0LXZvbHVu/dGVlcmlzbS1vdXRk/b29yLWNsZWFudXAt/Y29tbXVuaXR5LXNl/cnZpY2UteW91dGgt/ZW1wb3dlcm1lbnQt/Y2hhcml0YWJsZS1j/YXVzZV84NjQ1ODgt/ODk1MzkuanBnP3Nl/bXQ9YWlzX2h5YnJp/ZA",
   ];
 
-  const quickJobs = [
-    {
-      title: "Grass Cutting",
-      peopleNeeded: "1",
-      date: "5/08/2025",
-      price: "10.00",
-      duration: "1 Aug",
-      location: "Wagholi, Pune",
-      icon: images.worker,
-      backgroundColor: "bg-green-100",
-    },
-    {
-      title: "BabySitter for 1 day",
-      description: "2 Child",
-      peopleNeeded: "1",
-      date: "5/08/2025",
-      price: "15.00",
-      duration: "1 Aug",
-      location: "Kharadi, Pune",
-      icon: images.women,
-      backgroundColor: "bg-purple-100",
-    },
-    {
-      title: "BabySitter for 1 day",
-      description: "2 Child",
-      peopleNeeded: "1",
-      date: "5/08/2025",
-      price: "15.00",
-      duration: "1 Aug",
-      location: "Kharadi, Pune",
-      icon: images.women,
-      backgroundColor: "bg-purple-100",
-    },
-    {
-      title: "Grass Cutting",
-      description: "24 sq ft",
-      peopleNeeded: "1",
-      date: "5/08/2025",
-      price: "10.00",
-      duration: "1 Aug",
-      location: "Wagholi, Pune",
-      icon: images.worker,
-      backgroundColor: "bg-green-100",
-    },
-  ];
-
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView
@@ -115,13 +68,16 @@ const Home = () => {
           />
 
           <View className="mx-4">
-            <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
+            <ScrollView className="flex-1 bg-gray-50">
+              <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
+              {/* Other content here */}
+            </ScrollView>
 
             <Text className="text-2xl text-gray-800 font-medium my-5">
               Recommended Jobs
             </Text>
 
-            {/* Job Grid - 2 per row */}
+            {/* Job Grid - 2 per row
             <View className="flex flex-row flex-wrap justify-between">
               {quickJobs.map((job, index) => (
                 <View key={index} className="w-[48%] mb-4">
@@ -131,7 +87,7 @@ const Home = () => {
                   />
                 </View>
               ))}
-            </View>
+            </View> */}
           </View>
         </View>
       </ScrollView>
