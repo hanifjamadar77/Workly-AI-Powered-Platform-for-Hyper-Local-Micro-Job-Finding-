@@ -1,19 +1,26 @@
 import Header from "@/components/Header";
 import ImageSlider from "@/components/ImageSlider";
-import JobCard from "@/components/JobCard";
 import Search from "@/components/Search";
-import { images } from "@/constants";
+import { useLanguage } from "@/hooks/useLanguage"; // ✅ import custom hook
 import { getCurrentUser } from "@/lib/appwrite";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Button, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const router = useRouter();
   const navigation = useNavigation(); // moved above return
   const [user, setUser] = useState<any>(null);
+  const { t } = useTranslation();
+  const { lang, setLanguage } = useLanguage(); // ✅ use custom hook
+
+  // const handleLanguageChange = async (lang: any) => {
+  //   await changeAppLanguage(lang);
+  //   setLangRefresh((prev) => !prev); // 🔁 Force re-render
+  // };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -49,6 +56,13 @@ const Home = () => {
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         <View className="mt-4">
+          <View className="flex-1 justify-center items-center mt-4">
+            <Text>🌐 Current Language: {lang}</Text>
+            <Button title="English" onPress={() => setLanguage("en")} />
+            <Button title="हिंदी" onPress={() => setLanguage("hi")} />
+            <Button title="मराठी" onPress={() => setLanguage("mr")} />
+          </View>
+
           <Header
             welcomeText="Welcome Back,"
             name={
@@ -74,14 +88,14 @@ const Home = () => {
             </ScrollView>
 
             <Text className="text-2xl text-gray-800 font-medium my-5">
-              Recommended Jobs
+              {t("Recommended Jobs")}
             </Text>
 
             {/* Job Grid - 2 per row
             <View className="flex flex-row flex-wrap justify-between">
               {quickJobs.map((job, index) => (
                 <View key={index} className="w-[48%] mb-4">
-                  <JobCard
+                  <JobCard`
                     {...job}
                     onPress={() => router.push("./supportPages/jobDetails")}
                   />

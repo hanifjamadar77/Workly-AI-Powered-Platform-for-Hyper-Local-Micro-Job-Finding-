@@ -1,0 +1,26 @@
+{
+  "app": {
+     "Welcome Back,": "Welcome Back,",
+  "Recommended Jobs": "Recommended Jobs",
+  "Type something...": "Type something..."
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password"
+  },
+  "job": {
+    "post_job": "Post a Job",
+    "title": "Job Title",
+    "description": "Describe the job",
+    "create": "Create Job",
+    "instructions": "Fill out the details to post your job."
+  },
+  "profile": {
+    "create_profile": "Create Worker Profile",
+    "instructions": "Complete your profile to apply for jobs.",
+    "skills": "Skills",
+    "experience": "Experience"
+  }
+}

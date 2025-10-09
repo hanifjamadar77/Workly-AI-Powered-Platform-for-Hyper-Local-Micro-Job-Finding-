@@ -1,6 +1,7 @@
 import React from "react";
 import { Image, Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 export default function Header({
   welcomeText = "Welcome Back",
@@ -8,7 +9,7 @@ export default function Header({
   profileImage, // can be require(...) or { uri: "https://..." }
 }) {
   const router = useRouter();
-
+  const { t } = useTranslation();
   // Convert name to sentence case
   const sentenceCaseName = name
     .toLowerCase()
@@ -21,7 +22,7 @@ export default function Header({
   return (
     <View className="flex-row justify-between items-center bg-white p-5">
       <View>
-        <Text className="text-black text-2xl">{welcomeText}</Text>
+        <Text className="text-black text-2xl">{t(welcomeText)}</Text>
         <Text className="text-black text-2xl font-bold">{sentenceCaseName}</Text>
       </View>
 
