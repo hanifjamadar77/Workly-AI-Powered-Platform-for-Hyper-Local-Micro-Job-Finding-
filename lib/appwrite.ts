@@ -149,6 +149,7 @@ export const createJob = async (jobData: any) => {
 };
 
 // Fetch All Jobs
+// Fetch All Jobs with User Avatar
 export const getAllJobs = async () => {
   try {
     // Step 1: Fetch all job posts
@@ -168,22 +169,28 @@ export const getAllJobs = async () => {
 
         try {
           if (job.userId) {
-            const userDoc = await databases.getDocument(
+            // Fetch user document by accountId
+            const userDocs = await databases.listDocuments(
               appwriteConfig.databaseId,
-              appwriteConfig.userCollectionId, // users collection ID
-              job.userId
+              appwriteConfig.userCollectionId,
+              [Query.equal("accountId", job.userId)]
             );
 
-            if (userDoc) {
-              userName = userDoc.name || "Unknown";
-              avatarUrl = userDoc.avatar || null; // stored URL or file preview
+            if (userDocs.documents.length > 0) {
+              const user = userDocs.documents[0];
+              userName = user.name || "Unknown";
+              avatarUrl = user.avatar || null;
             }
           }
         } catch (err) {
           console.warn(`⚠️ Failed to fetch user for job: ${job.$id}`);
         }
 
-        return { ...job, avatarUrl, userName };
+        return { 
+          ...job, 
+          avatarUrl, 
+          userName 
+        };
       })
     );
 
@@ -193,6 +200,7 @@ export const getAllJobs = async () => {
     throw new Error("Failed to fetch jobs");
   }
 };
+
 // Fetch Jobs by User
 export const getJobsByUser = async (userId: any) => {
   try {

@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import JobCard from "@/components/JobCard";
 import Search from "@/components/Search";
-import { getAllJobs } from "@/lib/appwrite"; // ✅ imported from your Appwrite file
+import { getAllJobs } from "@/lib/appwrite";
 
 export default function Jobs() {
   const router = useRouter();
@@ -19,11 +19,11 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 🔹 Fetch jobs from Appwrite
   const fetchJobs = async () => {
     try {
       setLoading(true);
       const jobList = await getAllJobs();
+      console.log("📦 Jobs with user data:", jobList);
       setJobs(jobList);
     } catch (error) {
       console.error("❌ Error fetching jobs:", error);
@@ -32,14 +32,14 @@ export default function Jobs() {
     }
   };
 
-  // 🔹 Fetch all jobs once when screen loads
   useEffect(() => {
     fetchJobs();
   }, []);
 
-  // 🔹 Filter jobs based on search input
   const filteredJobs = jobs.filter((job) =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase())
+    job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.userName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toSentenceCase = (text: string) => {
@@ -54,9 +54,9 @@ export default function Jobs() {
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         <View className="mt-4 mx-4">
-          {/* 🔍 Search Bar */}
+          {/* Search Bar */}
           <Search
-            placeholder="Search jobs..."
+            placeholder="Search jobs or users..."
             onChangeText={setSearchQuery}
             value={searchQuery}
             onPress={() => console.log("Searching...")}
@@ -66,9 +66,9 @@ export default function Jobs() {
             Available Jobs
           </Text>
 
-          {/* 🔹 Loading Indicator */}
+          {/* Loading Indicator */}
           {loading ? (
-            <ActivityIndicator size="large" color="#000" />
+            <ActivityIndicator size="large" color="#6366f1" />
           ) : filteredJobs.length === 0 ? (
             <Text className="text-gray-500 text-center mt-8">
               No jobs available at the moment.
@@ -85,11 +85,12 @@ export default function Jobs() {
                         ? new Date(job.startDate).toLocaleDateString()
                         : ""
                     }
-                    location={`${toSentenceCase(job.street) || ""}, ${
-                      toSentenceCase(job.city) || ""
+                    location={`${toSentenceCase(job.city) || ""}, ${
+                      toSentenceCase(job.state) || ""
                     }`}
                     peopleNeeded={job.peopleNeeded || "1"}
-                    icon={job.avatarUrl} // ✅ avatar field from Appwrite
+                    icon={job.avatarUrl} // ✅ User avatar
+                    userName={toSentenceCase(job.userName)} // ✅ User name
                     backgroundColor="bg-green-100"
                     onPress={() =>
                       router.push({
@@ -103,10 +104,10 @@ export default function Jobs() {
             </View>
           )}
 
-          {/* 🔁 Refresh Button */}
+          {/* Refresh Button */}
           <TouchableOpacity
             onPress={fetchJobs}
-            className="mt-4 bg-green-600 py-3 rounded-xl"
+            className="mt-4 bg-indigo-600 py-3 rounded-xl"
           >
             <Text className="text-white text-center font-semibold">
               Refresh Jobs
