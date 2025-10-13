@@ -1,6 +1,7 @@
 import { account } from "@/lib/appwrite"; // ✅ import your appwrite.tsx config
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
+import {ThemeProvider} from "@/lib/ThemeContext";
 import "./globals.css";
 
 export default function Layout() {
@@ -14,10 +15,10 @@ export default function Layout() {
     const checkAuth = async () => {
       try {
         const user = await account.get(); // fetch current user
-        console.log("Logged in user:", user);
+        // console.log("Logged in user:", user);
         setIsAuthenticated(true);
       } catch (err) {
-        console.log("No active session:", err);
+        // console.log("No active session:", err);
         setIsAuthenticated(false);
       }
     };
@@ -42,6 +43,9 @@ export default function Layout() {
     // ✅ simple splash/loading screen
     return null;
   }
-
-  return <Slot />;
+ return (
+<ThemeProvider>
+  <Slot />;
+</ThemeProvider>
+ );
 }

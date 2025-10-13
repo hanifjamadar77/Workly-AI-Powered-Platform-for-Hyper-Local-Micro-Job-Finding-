@@ -1,41 +1,203 @@
 import Header from "@/components/Header";
 import ImageSlider from "@/components/ImageSlider";
 import Search from "@/components/Search";
-import { useLanguage } from "@/hooks/useLanguage"; // ✅ import custom hook
-import { getCurrentUser } from "@/lib/appwrite";
-import { useNavigation } from "@react-navigation/native";
+import JobCard from "@/components/JobCard";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, ScrollView, Text, View } from "react-native";
+import {
+  ScrollView,
+  Text,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Location from "expo-location";
+import {
+  getAllJobs,
+  getCurrentUser,
+  getWorkerProfileByUserId,
+} from "@/lib/appwrite";
+import {
+  getCityCoordinates,
+  sortJobsByDistance,
+  filterJobsByRadius,
+} from "@/utils/locationUtils";
+
+// ✅ Move interface OUTSIDE component
+interface Job {
+  $id: string;
+  $sequence?: number;
+  $collectionId?: string;
+  $databaseId?: string;
+  $createdAt?: string;
+  $updatedAt?: string;
+  $permissions?: string[];
+  title?: string;
+  pay?: string;
+  startDate?: string;
+  city?: string;
+  state?: string;
+  peopleNeeded?: string;
+  avatarUrl?: string;
+  userName?: string;
+  distance?: number;
+  [key: string]: any;
+}
 
 const Home = () => {
   const router = useRouter();
-  const navigation = useNavigation(); // moved above return
-  const [user, setUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { t } = useTranslation();
-  const { lang, setLanguage } = useLanguage(); // ✅ use custom hook
+  const { lang, setLanguage } = useLanguage();
 
-  // const handleLanguageChange = async (lang: any) => {
-  //   await changeAppLanguage(lang);
-  //   setLangRefresh((prev) => !prev); // 🔁 Force re-render
-  // };
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
+  const [nearbyJobs, setNearbyJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<{lat: number; lon: number} | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-    };
-
-    fetchUser();
+    loadUserAndJobs();
   }, []);
 
-  if (!user) {
+  const loadUserAndJobs = async () => {
+    try {
+      setLoading(true);
+
+      // 1. Get current user
+      const user = await getCurrentUser();
+      // console.log('✅ User loaded:', user);
+      setCurrentUser(user);
+
+      // 2. Get user's worker profile (which has location)
+      const profile = await getWorkerProfileByUserId(user.accountId);
+      // console.log('✅ Profile loaded:', profile);
+      setUserProfile(profile);
+
+      // 3. Get user's coordinates
+      let userCoords = null;
+
+      if (profile?.city) {
+        // Use city from profile
+        userCoords = getCityCoordinates(profile.city);
+        // console.log('📍 Coordinates from city:', userCoords);
+      }
+      
+      // If no city coordinates, try device location
+      if (!userCoords) {
+        const deviceLocation = await getUserDeviceLocation();
+        if (deviceLocation) {
+          userCoords = {
+            lat: deviceLocation.coords.latitude,
+            lon: deviceLocation.coords.longitude,
+          };
+          // console.log('📍 Coordinates from device:', userCoords);
+        }
+      }
+
+      setUserLocation(userCoords);
+
+      // 4. Fetch all jobs
+      const jobs = await getAllJobs();
+      // console.log('✅ All jobs fetched:', jobs.length);
+      // console.log('✅ Sample job structure:', JSON.stringify(jobs[0], null, 2));
+      
+      // Map jobs to ensure proper structure
+      const mappedJobs = jobs.map((job: any) => ({
+        $id: job.$id,
+        title: job.title || job.jobTitle || '',
+        pay: job.pay || job.salary || job.payment || '',
+        startDate: job.startDate || job.date || '',
+        city: job.city || job.location?.city || '',
+        state: job.state || job.location?.state || '',
+        peopleNeeded: job.peopleNeeded || job.workers || '1',
+        avatarUrl: job.avatarUrl || job.avatar || job.userAvatar || '',
+        userName: job.userName || job.postedBy || job.employer || '',
+        ...job
+      })) as Job[];
+
+      console.log('✅ Mapped job structure:', JSON.stringify(mappedJobs[0], null, 2));
+      setAllJobs(mappedJobs);
+
+      // 5. Filter and sort by distance
+      if (userCoords) {
+        // Filter jobs that have valid city and state
+        const validJobs = mappedJobs.filter((job: Job) => {
+          const hasCity = Boolean(job.city);
+          const hasState = Boolean(job.state);
+          // console.log(`Job "${job.title}": city=${job.city}, state=${job.state}, valid=${hasCity && hasState}`);
+          return hasCity && hasState;
+        });
+        
+        if (validJobs.length === 0) {
+          console.log('⚠️ No jobs have valid location data');
+          setNearbyJobs(mappedJobs.slice(0, 2));
+          return;
+        }
+        
+        // First sort all jobs by distance
+        const sortedJobs = sortJobsByDistance(
+          validJobs,
+          userCoords.lat,
+          userCoords.lon
+        );
+        
+        console.log('✅ After sorting, jobs with distances:', sortedJobs.slice(0, 3).map(j => ({
+          title: j.title,
+          city: j.city,
+          distance: j.distance
+        })));
+        
+        // Then filter by radius (30km)
+        const nearby = filterJobsByRadius(
+          sortedJobs,
+          userCoords.lat,
+          userCoords.lon,
+          30
+        );
+        
+        setNearbyJobs(nearby.slice(0, 2));
+      } else {
+        console.log('⚠️ No location, showing first 3 jobs');
+        setNearbyJobs(mappedJobs.slice(0, 3));
+      }
+    } catch (error) {
+      console.error("❌ Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserDeviceLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Location permission denied");
+        return null;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      return location;
+    } catch (error) {
+      console.error("Error getting location:", error);
+      return null;
+    }
+  };
+
+  const toSentenceCase = (text?: string) => {
+    if (!text) return "";
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
+  if (loading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>Loading...</Text>
-      </View>
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#6366f1" />
+        <Text className="text-gray-600 mt-4">Loading...</Text>
+      </SafeAreaView>
     );
   }
 
@@ -56,22 +218,15 @@ const Home = () => {
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         <View className="mt-4">
-          <View className="flex-1 justify-center items-center mt-4">
-            <Text>🌐 Current Language: {lang}</Text>
-            <Button title="English" onPress={() => setLanguage("en")} />
-            <Button title="हिंदी" onPress={() => setLanguage("hi")} />
-            <Button title="मराठी" onPress={() => setLanguage("mr")} />
-          </View>
-
           <Header
-            welcomeText="Welcome Back,"
+            welcomeText={t("Welcome Back,")}
             name={
-              user?.name
-                ? user.name.charAt(0).toUpperCase() +
-                  user.name.slice(1).toLowerCase()
+              currentUser?.name
+                ? currentUser.name.charAt(0).toUpperCase() +
+                  currentUser.name.slice(1).toLowerCase()
                 : ""
             }
-            profileImage={{ uri: user.avatar }}
+            profileImage={{ uri: currentUser?.avatar }}
           />
 
           <Search
@@ -82,26 +237,80 @@ const Home = () => {
           />
 
           <View className="mx-4">
-            <ScrollView className="flex-1 bg-gray-50">
-              <ImageSlider images={Sliderimages} autoPlayInterval={6000} />
-              {/* Other content here */}
-            </ScrollView>
+            <View className="bg-gray-50">
+              <ImageSlider images={Sliderimages} autoPlayInterval={4000} />
+            </View>
 
             <Text className="text-2xl text-gray-800 font-medium my-5">
               {t("Recommended Jobs")}
             </Text>
 
-            {/* Job Grid - 2 per row
-            <View className="flex flex-row flex-wrap justify-between">
-              {quickJobs.map((job, index) => (
-                <View key={index} className="w-[48%] mb-4">
-                  <JobCard`
-                    {...job}
-                    onPress={() => router.push("./supportPages/jobDetails")}
-                  />
+            {/* Recommended Jobs (Nearby) */}
+            <View className="mt-6">
+              <View className="flex-row justify-between items-center mb-4">
+                <View>
+                  {userLocation && userProfile?.city && (
+                    <Text className="text-sm text-gray-500">
+                      📍 Jobs near {userProfile.city}
+                    </Text>
+                  )}
                 </View>
-              ))}
-            </View> */}
+                <TouchableOpacity onPress={() => router.push("/(seeker)/jobs")}>
+                  <Text className="text-indigo-600 font-medium">View All</Text>
+                </TouchableOpacity>
+              </View>
+
+              {nearbyJobs.length === 0 ? (
+                <View className="bg-gray-50 rounded-2xl p-6 items-center">
+                  <Text className="text-gray-500 text-sm mt-2">
+                    Try updating your location in profile
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row">
+                    {nearbyJobs.map((job: Job) => (
+                      <View
+                        key={job.$id}
+                        className="mr-3 relative"
+                        style={{ width: 280 }}
+                      >
+                        <JobCard
+                          title={toSentenceCase(job.title || "Untitled Job")}
+                          price={job.pay || "N/A"}
+                          duration={
+                            job.startDate
+                              ? new Date(job.startDate).toLocaleDateString()
+                              : "Not specified"
+                          }
+                          location={`${toSentenceCase(
+                            job.city || "Unknown"
+                          )}, ${toSentenceCase(job.state || "")}`}
+                          peopleNeeded={job.peopleNeeded || "1"}
+                          icon={job.avatarUrl}
+                          userName={job.userName}
+                          backgroundColor="bg-blue-100"
+                          onPress={() =>
+                            router.push({
+                              pathname: "../supportPages/jobDetails",
+                              params: { jobId: job.$id },
+                            })
+                          }
+                        />
+                        {/* Distance Badge */}
+                        {/* {job.distance !== undefined && (
+                          <View className="absolute top-2 right-2 bg-indigo-600 px-2 py-1 rounded-full">
+                            <Text className="text-white text-xs font-semibold">
+                              📍 {job.distance.toFixed(1)} km
+                            </Text>
+                          </View>
+                        )} */}
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>

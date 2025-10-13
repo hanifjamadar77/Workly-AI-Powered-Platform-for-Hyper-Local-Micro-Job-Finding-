@@ -55,10 +55,21 @@ export default function jobProfile() {
   };
 
   // Filter profiles based on search
-  const filteredProfiles = allProfiles.filter((profile) =>
-    profile.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    profile.skills?.some((skill: string) => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+ // Filter profiles based on search & availability
+const filteredProfiles = allProfiles
+  .filter(
+    (p) =>
+      p.availability?.toLowerCase() === "available" ||
+      p.availability?.toLowerCase() === "busy"
+  )
+  .filter(
+    (profile) =>
+      profile.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      profile.skills?.some((skill: string) =>
+        skill.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   );
+
 
   // Categorize profiles
   const topRatedProfiles = filteredProfiles.filter(p => typeof p.rating === "number" && p.rating >= 4.5).slice(0, 6);

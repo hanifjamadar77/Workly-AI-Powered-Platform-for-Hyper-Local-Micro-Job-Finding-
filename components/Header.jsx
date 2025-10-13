@@ -22,7 +22,7 @@ export default function Header({
   return (
     <View className="flex-row justify-between items-center bg-white p-5">
       <View>
-        <Text className="text-black text-2xl">{t(welcomeText)}</Text>
+        <Text className="text-black text-2xl">{welcomeText}</Text>
         <Text className="text-black text-2xl font-bold">{sentenceCaseName}</Text>
       </View>
 

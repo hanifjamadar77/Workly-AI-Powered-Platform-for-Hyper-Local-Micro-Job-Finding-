@@ -242,14 +242,16 @@ export const createWorkerProfile = async (profileData: any) => {
         experience: profileData.experience || "",
         gender: profileData.gender || "",
         address: profileData.address || "",
+        city: profileData.city || "", // ✅ NEW
+        state: profileData.state || "", // ✅ NEW
+        latitude: profileData.latitude || null, // ✅ NEW
+        longitude: profileData.longitude || null, // ✅ NEW
         aadhar: profileData.aadhar || "",
-        // city: profileData.city || "",
-        // state: profileData.state || "",
         availability: profileData.availability || "Available",
         age: profileData.age || "",
         profilePhoto: profileData.profilePhoto || "",
         rating: 0,
-        completedJobs: 0,
+        completedJobs: profileData.completedJobs || "0",
         createdDate: new Date().toISOString(),
         updatedDate: new Date().toISOString(),
       }

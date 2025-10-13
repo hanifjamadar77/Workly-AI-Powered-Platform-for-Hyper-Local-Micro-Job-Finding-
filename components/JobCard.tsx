@@ -3,12 +3,12 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 
 type JobCardProps = {
   title: string;
-  userName?: string; // ✅ Added optional userName prop
+  userName?: string;
   peopleNeeded: string | number;
   price: number | string;
   duration: string;
   location?: string;
-  icon?: string | { uri: string } | number; // user avatar or emoji
+  icon?: string | { uri: string } | number;
   backgroundColor?: string;
   onPress?: () => void;
 };
@@ -19,11 +19,36 @@ export default function JobCard({
   duration,
   location,
   peopleNeeded,
-  icon, // Avatar URL
-  userName, // ✅ Added userName prop
+  icon,
+  userName,
   backgroundColor = 'bg-green-100',
   onPress
-} : JobCardProps) {
+}: JobCardProps) {
+  
+  // Helper function to get proper image source
+  const getImageSource = () => {
+    if (!icon) return null;
+    
+    // If it's already an object with uri, return it
+    if (typeof icon === 'object' && 'uri' in icon) {
+      return icon;
+    }
+    
+    // If it's a string URL, wrap it in uri object
+    if (typeof icon === 'string') {
+      return { uri: icon };
+    }
+    
+    // If it's a number (local image require), return as is
+    if (typeof icon === 'number') {
+      return icon;
+    }
+    
+    return null;
+  };
+
+  const imageSource = getImageSource();
+
   return (
     <TouchableOpacity
       className={`${backgroundColor} rounded-2xl p-4 shadow-sm`}
@@ -39,9 +64,9 @@ export default function JobCard({
       {(icon || userName) && (
         <View className="flex-row items-center mb-3">
           <View className="w-8 h-8 bg-white rounded-full justify-center items-center shadow-sm mr-2">
-            {icon ? (
+            {imageSource ? (
               <Image
-                source={{ uri: icon }}
+                source={imageSource}
                 className="w-7 h-7 rounded-full"
                 resizeMode="cover"
               />
