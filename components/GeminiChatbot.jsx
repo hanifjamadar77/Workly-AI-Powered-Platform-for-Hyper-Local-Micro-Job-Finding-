@@ -13,7 +13,7 @@ import {
   SafeAreaView,
 } from "react-native";
 
-const API_KEY = "AIzaSyAvO4QRvfbX9dxhxvJcLkMtWyq9JcVP7hE";
+const API_KEY = "";
 
 const WORKLY_SYSTEM_PROMPT = `You are Luci, an intelligent AI assistant for Workly - a workforce management and job platform. 
 
