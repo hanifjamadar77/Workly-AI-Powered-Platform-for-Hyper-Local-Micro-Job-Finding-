@@ -12,9 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import JobCard from "@/components/JobCard";
 import Search from "@/components/Search";
 import { getAllJobs } from "@/lib/appwrite";
+import { useTheme } from "@/lib/ThemeContext"; // ✅ ThemeContext
 
 export default function Jobs() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme(); // ✅ access dark mode colors
+
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,7 +26,6 @@ export default function Jobs() {
     try {
       setLoading(true);
       const jobList = await getAllJobs();
-      console.log("📦 Jobs with user data:", jobList);
       setJobs(jobList);
     } catch (error) {
       console.error("❌ Error fetching jobs:", error);
@@ -48,7 +50,9 @@ export default function Jobs() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: isDarkMode ? colors.background : "#f9f9f9" }} // ✅ dark/light
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
@@ -60,17 +64,27 @@ export default function Jobs() {
             onChangeText={setSearchQuery}
             value={searchQuery}
             onPress={() => console.log("Searching...")}
+            // backgroundColor={isDarkMode ? "bg-gray-700" : "bg-gray-100"}
+            // textColor={isDarkMode ? "text-white" : "text-gray-800"}
           />
 
-          <Text className="text-xl text-gray-800 font-semibold my-5">
+          <Text
+            className={`text-xl font-semibold my-5 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             Available Jobs
           </Text>
 
           {/* Loading Indicator */}
           {loading ? (
-            <ActivityIndicator size="large" color="#6366f1" />
+            <ActivityIndicator size="large"/>
           ) : filteredJobs.length === 0 ? (
-            <Text className="text-gray-500 text-center mt-8">
+            <Text
+              className={`text-center mt-8 ${
+                isDarkMode ? "text-gray-300" : "text-gray-500"
+              }`}
+            >
               No jobs available at the moment.
             </Text>
           ) : (
@@ -89,9 +103,9 @@ export default function Jobs() {
                       toSentenceCase(job.state) || ""
                     }`}
                     peopleNeeded={job.peopleNeeded || "1"}
-                    icon={job.avatarUrl} // ✅ User avatar
-                    userName={toSentenceCase(job.userName)} // ✅ User name
-                    backgroundColor="bg-green-100"
+                    icon={job.avatarUrl}
+                    userName={toSentenceCase(job.userName)}
+                    backgroundColor={isDarkMode ? "bg-gray-300" : "bg-green-100"} // ✅ dark/light
                     onPress={() =>
                       router.push({
                         pathname: "../supportPages/jobDetails",
@@ -107,7 +121,9 @@ export default function Jobs() {
           {/* Refresh Button */}
           <TouchableOpacity
             onPress={fetchJobs}
-            className="mt-4 bg-indigo-600 py-3 rounded-xl"
+            className={`mt-4 py-3 rounded-xl ${
+              isDarkMode ? "bg-indigo-500" : "bg-indigo-600"
+            }`}
           >
             <Text className="text-white text-center font-semibold">
               Refresh Jobs

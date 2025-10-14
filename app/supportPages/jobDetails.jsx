@@ -120,10 +120,10 @@ export default function JobDetailsPage(props) {
           </Text>
           <View className="flex-row items-center mt-3">
             <View className="bg-white bg-opacity-20 px-4 py-2 rounded-full mr-2">
-              <Text className="text-white font-semibold">₹{jobData.pay}</Text>
+              <Text className="text-green-600 font-semibold">₹{jobData.pay}</Text>
             </View>
             <View className="bg-white bg-opacity-20 px-4 py-2 rounded-full">
-              <Text className="text-white font-semibold">
+              <Text className="text-black font-semibold">
                 👥 {jobData.peopleNeeded || 1} needed
               </Text>
             </View>

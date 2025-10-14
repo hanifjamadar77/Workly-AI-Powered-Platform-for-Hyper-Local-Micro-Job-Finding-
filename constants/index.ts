@@ -31,6 +31,7 @@ import worker from "@/assets/images/worker-man.png";
 
 import keyBg from "@/assets/images/key.png";
 import logo from "@/assets/images/logo.png";
+import chat from "@/assets/images/chat.jpg";
 
 export const images = {
     home,
@@ -45,6 +46,7 @@ export const images = {
 
     keyBg,
     logo,
+    chat,
 
     arrowBack,
     arrowDown,

@@ -2,11 +2,13 @@ import { account } from "@/lib/appwrite"; // ✅ import your appwrite.tsx config
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import {ThemeProvider} from "@/lib/ThemeContext";
+import { useTheme } from "@/lib/ThemeContext";
 import "./globals.css";
 
 export default function Layout() {
   const router = useRouter();
   const segments = useSegments();
+  const { colors, isDarkMode } = useTheme();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -45,7 +47,7 @@ export default function Layout() {
   }
  return (
 <ThemeProvider>
-  <Slot />;
+  <Slot />
 </ThemeProvider>
  );
 }

@@ -1,40 +1,35 @@
+import GeminiChatbot from "@/components/GeminiChatbot";
 import Header from "@/components/Header";
 import ImageSlider from "@/components/ImageSlider";
-import Search from "@/components/Search";
 import JobCard from "@/components/JobCard";
-import { useLanguage } from "@/hooks/useLanguage";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  ScrollView,
-  Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import * as Location from "expo-location";
+import Search from "@/components/Search";
+import { images } from "@/constants";
+import { useTheme } from "@/lib/ThemeContext";
 import {
   getAllJobs,
   getCurrentUser,
   getWorkerProfileByUserId,
 } from "@/lib/appwrite";
 import {
+  filterJobsByRadius,
   getCityCoordinates,
   sortJobsByDistance,
-  filterJobsByRadius,
 } from "@/utils/locationUtils";
+import * as Location from "expo-location";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// ✅ Move interface OUTSIDE component
 interface Job {
   $id: string;
-  $sequence?: number;
-  $collectionId?: string;
-  $databaseId?: string;
-  $createdAt?: string;
-  $updatedAt?: string;
-  $permissions?: string[];
   title?: string;
   pay?: string;
   startDate?: string;
@@ -49,15 +44,17 @@ interface Job {
 
 const Home = () => {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { t } = useTranslation();
-  const { lang, setLanguage } = useLanguage();
-
   const [userProfile, setUserProfile] = useState<any>(null);
   const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [nearbyJobs, setNearbyJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{lat: number; lon: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
 
   useEffect(() => {
     loadUserAndJobs();
@@ -66,27 +63,13 @@ const Home = () => {
   const loadUserAndJobs = async () => {
     try {
       setLoading(true);
-
-      // 1. Get current user
       const user = await getCurrentUser();
-      // console.log('✅ User loaded:', user);
       setCurrentUser(user);
-
-      // 2. Get user's worker profile (which has location)
       const profile = await getWorkerProfileByUserId(user.accountId);
-      // console.log('✅ Profile loaded:', profile);
       setUserProfile(profile);
 
-      // 3. Get user's coordinates
       let userCoords = null;
-
-      if (profile?.city) {
-        // Use city from profile
-        userCoords = getCityCoordinates(profile.city);
-        // console.log('📍 Coordinates from city:', userCoords);
-      }
-      
-      // If no city coordinates, try device location
+      if (profile?.city) userCoords = getCityCoordinates(profile.city);
       if (!userCoords) {
         const deviceLocation = await getUserDeviceLocation();
         if (deviceLocation) {
@@ -94,74 +77,45 @@ const Home = () => {
             lat: deviceLocation.coords.latitude,
             lon: deviceLocation.coords.longitude,
           };
-          // console.log('📍 Coordinates from device:', userCoords);
         }
       }
-
       setUserLocation(userCoords);
 
-      // 4. Fetch all jobs
       const jobs = await getAllJobs();
-      // console.log('✅ All jobs fetched:', jobs.length);
-      // console.log('✅ Sample job structure:', JSON.stringify(jobs[0], null, 2));
-      
-      // Map jobs to ensure proper structure
       const mappedJobs = jobs.map((job: any) => ({
         $id: job.$id,
-        title: job.title || job.jobTitle || '',
-        pay: job.pay || job.salary || job.payment || '',
-        startDate: job.startDate || job.date || '',
-        city: job.city || job.location?.city || '',
-        state: job.state || job.location?.state || '',
-        peopleNeeded: job.peopleNeeded || job.workers || '1',
-        avatarUrl: job.avatarUrl || job.avatar || job.userAvatar || '',
-        userName: job.userName || job.postedBy || job.employer || '',
-        ...job
+        title: job.title || job.jobTitle || "",
+        pay: job.pay || job.salary || job.payment || "",
+        startDate: job.startDate || job.date || "",
+        city: job.city || job.location?.city || "",
+        state: job.state || job.location?.state || "",
+        peopleNeeded: job.peopleNeeded || job.workers || "1",
+        avatarUrl: job.avatarUrl || job.avatar || job.userAvatar || "",
+        userName: job.userName || job.postedBy || job.employer || "",
+        ...job,
       })) as Job[];
 
-      console.log('✅ Mapped job structure:', JSON.stringify(mappedJobs[0], null, 2));
       setAllJobs(mappedJobs);
 
-      // 5. Filter and sort by distance
       if (userCoords) {
-        // Filter jobs that have valid city and state
-        const validJobs = mappedJobs.filter((job: Job) => {
-          const hasCity = Boolean(job.city);
-          const hasState = Boolean(job.state);
-          // console.log(`Job "${job.title}": city=${job.city}, state=${job.state}, valid=${hasCity && hasState}`);
-          return hasCity && hasState;
-        });
-        
+        const validJobs = mappedJobs.filter((job) => job.city && job.state);
         if (validJobs.length === 0) {
-          console.log('⚠️ No jobs have valid location data');
           setNearbyJobs(mappedJobs.slice(0, 2));
           return;
         }
-        
-        // First sort all jobs by distance
         const sortedJobs = sortJobsByDistance(
           validJobs,
           userCoords.lat,
           userCoords.lon
         );
-        
-        console.log('✅ After sorting, jobs with distances:', sortedJobs.slice(0, 3).map(j => ({
-          title: j.title,
-          city: j.city,
-          distance: j.distance
-        })));
-        
-        // Then filter by radius (30km)
         const nearby = filterJobsByRadius(
           sortedJobs,
           userCoords.lat,
           userCoords.lon,
           30
         );
-        
         setNearbyJobs(nearby.slice(0, 2));
       } else {
-        console.log('⚠️ No location, showing first 3 jobs');
         setNearbyJobs(mappedJobs.slice(0, 3));
       }
     } catch (error) {
@@ -174,13 +128,8 @@ const Home = () => {
   const getUserDeviceLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Location permission denied");
-        return null;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-      return location;
+      if (status !== "granted") return null;
+      return await Location.getCurrentPositionAsync({});
     } catch (error) {
       console.error("Error getting location:", error);
       return null;
@@ -194,9 +143,14 @@ const Home = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text className="text-gray-600 mt-4">Loading...</Text>
+      <SafeAreaView
+        className="flex-1 justify-center items-center"
+        style={{ backgroundColor: colors.background }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="mt-4" style={{ color: colors.text }}>
+          Loading...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -212,20 +166,15 @@ const Home = () => {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "bg-gray-700" }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         <View className="mt-4">
           <Header
-            welcomeText={t("Welcome Back,")}
-            name={
-              currentUser?.name
-                ? currentUser.name.charAt(0).toUpperCase() +
-                  currentUser.name.slice(1).toLowerCase()
-                : ""
-            }
+            welcomeText="Welcome Back,"
+            name={currentUser?.name}
             profileImage={{ uri: currentUser?.avatar }}
           />
 
@@ -237,39 +186,54 @@ const Home = () => {
           />
 
           <View className="mx-4">
-            <View className="bg-gray-50">
+            <View className={isDarkMode ? "bg-gray-800" : "bg-gray-50"}>
               <ImageSlider images={Sliderimages} autoPlayInterval={4000} />
             </View>
 
-            <Text className="text-2xl text-gray-800 font-medium my-5">
-              {t("Recommended Jobs")}
+            <Text
+              className={`text-2xl font-medium my-5 ${
+                isDarkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
+              Recommended Jobs
             </Text>
 
-            {/* Recommended Jobs (Nearby) */}
             <View className="mt-6">
               <View className="flex-row justify-between items-center mb-4">
                 <View>
                   {userLocation && userProfile?.city && (
-                    <Text className="text-sm text-gray-500">
+                    <Text
+                      className={`text-sm ${
+                        isDarkMode ? "text-white" : "text-gray-500"
+                      }`}
+                    >
                       📍 Jobs near {userProfile.city}
                     </Text>
                   )}
                 </View>
                 <TouchableOpacity onPress={() => router.push("/(seeker)/jobs")}>
-                  <Text className="text-indigo-600 font-medium">View All</Text>
+                  <Text className="text-blue-500 font-medium">View All</Text>
                 </TouchableOpacity>
               </View>
 
               {nearbyJobs.length === 0 ? (
-                <View className="bg-gray-50 rounded-2xl p-6 items-center">
-                  <Text className="text-gray-500 text-sm mt-2">
+                <View
+                  className={`rounded-2xl p-6 items-center ${
+                    isDarkMode ? "bg-gray-500" : "bg-gray-50"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm mt-2 ${
+                      isDarkMode ? "text-white" : "text-gray-500"
+                    }`}
+                  >
                     Try updating your location in profile
                   </Text>
                 </View>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View className="flex-row">
-                    {nearbyJobs.map((job: Job) => (
+                    {nearbyJobs.map((job) => (
                       <View
                         key={job.$id}
                         className="mr-3 relative"
@@ -289,7 +253,9 @@ const Home = () => {
                           peopleNeeded={job.peopleNeeded || "1"}
                           icon={job.avatarUrl}
                           userName={job.userName}
-                          backgroundColor="bg-blue-100"
+                          backgroundColor={
+                            isDarkMode ? "bg-gray-300" : "bg-blue-100"
+                          }
                           onPress={() =>
                             router.push({
                               pathname: "../supportPages/jobDetails",
@@ -297,14 +263,6 @@ const Home = () => {
                             })
                           }
                         />
-                        {/* Distance Badge */}
-                        {/* {job.distance !== undefined && (
-                          <View className="absolute top-2 right-2 bg-indigo-600 px-2 py-1 rounded-full">
-                            <Text className="text-white text-xs font-semibold">
-                              📍 {job.distance.toFixed(1)} km
-                            </Text>
-                          </View>
-                        )} */}
                       </View>
                     ))}
                   </View>
@@ -313,6 +271,27 @@ const Home = () => {
             </View>
           </View>
         </View>
+
+        {/* Floating Add Button */}
+        <TouchableOpacity
+          className="absolute bottom-6 right-6 w-20 h-20 rounded-full justify-center items-center shadow-lg mb-6"
+          // style={{
+          //   backgroundColor: isDarkMode ? "#4f46e5" : "#6366f1",
+          // }}
+          onPress={() => setIsChatOpen(true)}
+          activeOpacity={0.8}
+        >
+          <Image
+            source={images.chat}
+            className="w-full h-full rounded-full"
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+
+        <GeminiChatbot
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );

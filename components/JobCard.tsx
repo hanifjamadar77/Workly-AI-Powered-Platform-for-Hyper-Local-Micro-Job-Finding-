@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { useTheme } from '@/lib/ThemeContext';
 
 type JobCardProps = {
   title: string;
@@ -9,7 +10,7 @@ type JobCardProps = {
   duration: string;
   location?: string;
   icon?: string | { uri: string } | number;
-  backgroundColor?: string;
+  backgroundColor?: string; // fallback for light/dark mode
   onPress?: () => void;
 };
 
@@ -21,49 +22,44 @@ export default function JobCard({
   peopleNeeded,
   icon,
   userName,
-  backgroundColor = 'bg-green-100',
+  backgroundColor,
   onPress
 }: JobCardProps) {
-  
+  const { isDarkMode } = useTheme();
+
   // Helper function to get proper image source
   const getImageSource = () => {
     if (!icon) return null;
-    
-    // If it's already an object with uri, return it
-    if (typeof icon === 'object' && 'uri' in icon) {
-      return icon;
-    }
-    
-    // If it's a string URL, wrap it in uri object
-    if (typeof icon === 'string') {
-      return { uri: icon };
-    }
-    
-    // If it's a number (local image require), return as is
-    if (typeof icon === 'number') {
-      return icon;
-    }
-    
+    if (typeof icon === 'object' && 'uri' in icon) return icon;
+    if (typeof icon === 'string') return { uri: icon };
+    if (typeof icon === 'number') return icon;
     return null;
   };
 
   const imageSource = getImageSource();
 
+  // Tailwind classes based on dark/light mode
+  const cardBg = backgroundColor ? backgroundColor : isDarkMode ? 'bg-gray-800' : 'bg-white';
+  const textPrimary = isDarkMode ? 'text-white' : 'text-gray-800';
+  const textSecondary = isDarkMode ? 'text-gray-300' : 'text-gray-600';
+  const textAccent = isDarkMode ? 'text-green-400' : 'text-green-700';
+  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+
   return (
     <TouchableOpacity
-      className={`${backgroundColor} rounded-2xl p-4 shadow-sm`}
+      className={`${cardBg} rounded-2xl p-4 shadow-sm`}
       onPress={onPress}
       activeOpacity={0.7}
     >
       {/* Job Title */}
-      <Text className="text-base font-bold text-gray-800 mb-2" numberOfLines={2}>
+      <Text className={`text-base font-bold mb-2 ${textPrimary}`} numberOfLines={2}>
         {title}
       </Text>
 
       {/* Posted By User Avatar & Name */}
       {(icon || userName) && (
         <View className="flex-row items-center mb-3">
-          <View className="w-8 h-8 bg-white rounded-full justify-center items-center shadow-sm mr-2">
+          <View className={`w-8 h-8 ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-full justify-center items-center shadow-sm mr-2`}>
             {imageSource ? (
               <Image
                 source={imageSource}
@@ -71,12 +67,12 @@ export default function JobCard({
                 resizeMode="cover"
               />
             ) : (
-              <Text className="text-sm">👤</Text>
+              <Text className={`text-sm ${textSecondary}`}>👤</Text>
             )}
           </View>
           <View className="flex-1">
-            <Text className="text-xs text-gray-500">Posted by</Text>
-            <Text className="text-xs font-semibold text-gray-700" numberOfLines={1}>
+            <Text className={`text-xs ${textSecondary}`}>Posted by</Text>
+            <Text className={`text-xs font-semibold ${textPrimary}`} numberOfLines={1}>
               {userName || 'Unknown User'}
             </Text>
           </View>
@@ -86,8 +82,8 @@ export default function JobCard({
       {/* Location */}
       {location && (
         <View className="flex-row items-center mb-2">
-          <Text className="text-gray-500 text-xs">📍</Text>
-          <Text className="text-xs text-gray-600 ml-1" numberOfLines={1}>
+          <Text className={`text-xs ${textSecondary}`}>📍</Text>
+          <Text className={`text-xs ml-1 ${textSecondary}`} numberOfLines={1}>
             {location}
           </Text>
         </View>
@@ -95,20 +91,20 @@ export default function JobCard({
 
       {/* Pay */}
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-sm text-gray-600">Pay:</Text>
-        <Text className="text-base font-bold text-green-700">₹{price}</Text>
+        <Text className={`text-sm ${textSecondary}`}>Pay:</Text>
+        <Text className={`text-base font-bold ${textAccent}`}>₹{price}</Text>
       </View>
 
       {/* People Needed */}
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-sm text-gray-600">People:</Text>
-        <Text className="text-sm font-semibold text-gray-800">{peopleNeeded}</Text>
+        <Text className={`text-sm ${textSecondary}`}>People:</Text>
+        <Text className={`text-sm font-semibold ${textPrimary}`}>{peopleNeeded}</Text>
       </View>
 
       {/* Duration/Date */}
       {duration && (
-        <View className="mt-2 pt-2 border-t border-gray-200">
-          <Text className="text-xs text-gray-500">📅 {duration}</Text>
+        <View className={`mt-2 pt-2 border-t ${borderColor}`}>
+          <Text className={`text-xs ${textSecondary}`}>📅 {duration}</Text>
         </View>
       )}
     </TouchableOpacity>

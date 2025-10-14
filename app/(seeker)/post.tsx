@@ -14,10 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { images } from "@/constants";
-import { createJob, getCurrentUser } from "@/lib/appwrite"; // ✅ Appwrite helpers
+import { createJob, getCurrentUser } from "@/lib/appwrite";
+import { useTheme } from "@/lib/ThemeContext"; // ✅ Dark/Light theme
 
 export default function PostJobScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme(); // ✅ get theme colors
 
   const [form, setForm] = useState({
     title: "",
@@ -46,9 +48,7 @@ export default function PostJobScreen() {
     const currentDate = selectedDate || startDate;
     setShowStartDatePicker(false);
     setStartDate(currentDate);
-    if (currentDate > endDate) {
-      setEndDate(currentDate);
-    }
+    if (currentDate > endDate) setEndDate(currentDate);
   };
 
   const onChangeEndDate = (event: any, selectedDate?: Date) => {
@@ -57,100 +57,97 @@ export default function PostJobScreen() {
     setEndDate(currentDate);
   };
 
-const handlePostJob = async () => {
-  const {
-    title,
-    description,
-    category,
-    houseNumber,
-    street,
-    city,
-    state,
-    pincode,
-    pay,
-    peopleNeeded,
-  } = form;
-
-  // Validation
-  if (
-    !title ||
-    !description ||
-    !houseNumber ||
-    !street ||
-    !city ||
-    !state ||
-    !pincode ||
-    !pay ||
-    !peopleNeeded
-  ) {
-    alert("⚠️ Please fill all fields");
-    return;
-  }
-
-  if (pincode.length !== 6) {
-    alert("⚠️ Pincode must be 6 digits");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // Get logged-in user
-    const user = await getCurrentUser();
-    if (!user) {
-      alert("You must be logged in to post a job.");
-      return;
-    }
-
-    // Create new job in Appwrite
-    const response = await createJob({
+  const handlePostJob = async () => {
+    const {
       title,
       description,
-      // category: category || "General",
       houseNumber,
       street,
       city,
       state,
       pincode,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
       pay,
       peopleNeeded,
-      userId: user.accountId,
-      createdDate: new Date().toISOString(), 
-    });
+    } = form;
 
-    console.log("✅ Job Created:", response);
-    alert("✅ Job Posted Successfully!");
-    
-    // Clear form
-    setForm({
-      title: "",
-      description: "",
-      category: "",
-      houseNumber: "",
-      street: "",
-      city: "",
-      state: "",
-      pincode: "",
-      pay: "",
-      peopleNeeded: "",
-    });
-    
-    // Navigate after successful creation
-    router.push("/(seeker)/jobs");
+    if (
+      !title ||
+      !description ||
+      !houseNumber ||
+      !street ||
+      !city ||
+      !state ||
+      !pincode ||
+      !pay ||
+      !peopleNeeded
+    ) {
+      alert("⚠️ Please fill all fields");
+      return;
+    }
 
-  } catch (error: any) {
-    console.error("❌ Error posting job:", error);
-    alert(error?.message || "Failed to post job");
-  } finally {
-    setLoading(false);
-  }
-};
+    if (pincode.length !== 6) {
+      alert("⚠️ Pincode must be 6 digits");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const user = await getCurrentUser();
+      if (!user) {
+        alert("You must be logged in to post a job.");
+        return;
+      }
+
+      await createJob({
+        title,
+        description,
+        houseNumber,
+        street,
+        city,
+        state,
+        pincode,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        pay,
+        peopleNeeded,
+        userId: user.accountId,
+        createdDate: new Date().toISOString(),
+      });
+
+      alert("✅ Job Posted Successfully!");
+      setForm({
+        title: "",
+        description: "",
+        category: "",
+        houseNumber: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        pay: "",
+        peopleNeeded: "",
+      });
+
+      router.push("/(seeker)/jobs");
+    } catch (error: any) {
+      console.error("❌ Error posting job:", error);
+      alert(error?.message || "Failed to post job");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputBg = isDarkMode ? "bg-gray-500" : "bg-gray-100";
+  const inputText = isDarkMode ? "text-white" : "text-gray-800";
+  const borderColor = isDarkMode ? "border-white" : "border-gray-300";
+  const labelColor = isDarkMode ? "text-white" : "text-gray-800";
+  const headerBg = isDarkMode ? "bg-gray-500" : "bg-white";
+  const headerText = isDarkMode ? "text-white" : "text-gray-800";
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background}}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-gray-200">
+      <View className={`flex-row items-center justify-between px-5 py-4 ${headerBg} border-b ${borderColor}`}>
         <TouchableOpacity onPress={() => router.push("/(seeker)/jobs")}>
           <Image
             source={images.arrowBack}
@@ -158,7 +155,7 @@ const handlePostJob = async () => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text className="text-2xl font-bold text-gray-800">Post a Job</Text>
+        <Text className={`text-2xl font-bold ${headerText}`}>Post a Job</Text>
         <View className="w-6 h-6" />
       </View>
 
@@ -171,23 +168,25 @@ const handlePostJob = async () => {
           contentContainerStyle={{ flexGrow: 1, paddingBottom: 0 }}
         >
           {/* Job Title */}
-          <Text className="text-base font-semibold mb-2">Job Title</Text>
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>Job Title</Text>
           <TextInput
             value={form.title}
             onChangeText={(text) => handleFormChange("title", text)}
             placeholder="Enter job title"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+            placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
+            className={`rounded-lg px-4 py-3 mb-4 text-base ${inputBg} ${inputText} border ${borderColor}`}
           />
 
           {/* Job Description */}
-          <Text className="text-base font-semibold mb-2">Job Description</Text>
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>Job Description</Text>
           <TextInput
             value={form.description}
             onChangeText={(text) => handleFormChange("description", text)}
             placeholder="Enter job description"
+            placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
             multiline
             numberOfLines={4}
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+            className={`rounded-lg px-4 py-3 mb-4 text-base ${inputBg} ${inputText} border ${borderColor}`}
           />
 
           {/* Address Fields */}
@@ -199,24 +198,25 @@ const handlePostJob = async () => {
             { label: "Pincode", field: "pincode", keyboard: "numeric" },
           ].map(({ label, field, keyboard }, i) => (
             <View key={i}>
-              <Text className="text-base font-semibold mb-2">{label}</Text>
+              <Text className={`text-base font-semibold mb-2 ${labelColor}`}>{label}</Text>
               <TextInput
                 value={(form as any)[field]}
                 onChangeText={(text) => handleFormChange(field, text)}
                 placeholder={`Enter ${label}`}
+                placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
                 keyboardType={keyboard as any || "default"}
-                className="border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
+                className={`rounded-lg px-4 py-3 mb-4 text-base ${inputBg} ${inputText} border ${borderColor}`}
               />
             </View>
           ))}
 
           {/* Start Date */}
-          <Text className="text-base font-semibold mb-2">Start Date</Text>
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>Start Date</Text>
           <TouchableOpacity
             onPress={() => setShowStartDatePicker(true)}
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4"
+            className={`rounded-lg px-4 py-3 mb-4 border ${borderColor} ${inputBg}`}
           >
-            <Text className="text-base">{startDate.toLocaleDateString()}</Text>
+            <Text className={`${inputText}`}>{startDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker
@@ -228,12 +228,12 @@ const handlePostJob = async () => {
           )}
 
           {/* End Date */}
-          <Text className="text-base font-semibold mb-2">End Date</Text>
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>End Date</Text>
           <TouchableOpacity
             onPress={() => setShowEndDatePicker(true)}
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4"
+            className={`rounded-lg px-4 py-3 mb-4 border ${borderColor} ${inputBg}`}
           >
-            <Text className="text-base">{endDate.toLocaleDateString()}</Text>
+            <Text className={`${inputText}`}>{endDate.toLocaleDateString()}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker
@@ -246,25 +246,25 @@ const handlePostJob = async () => {
           )}
 
           {/* Pay */}
-          <Text className="text-base font-semibold mb-2">Pay</Text>
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>Pay</Text>
           <TextInput
             value={form.pay}
             onChangeText={(text) => handleFormChange("pay", text)}
             placeholder="Enter pay"
+            placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
             keyboardType="numeric"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-base"
+            className={`rounded-lg px-4 py-3 mb-6 text-base ${inputBg} ${inputText} border ${borderColor}`}
           />
 
-          {/* No. of People Needed */}
-          <Text className="text-base font-semibold mb-2">
-            No. of People Needed
-          </Text>
+          {/* People Needed */}
+          <Text className={`text-base font-semibold mb-2 ${labelColor}`}>No. of People Needed</Text>
           <TextInput
             value={form.peopleNeeded}
             onChangeText={(text) => handleFormChange("peopleNeeded", text)}
             placeholder="Enter number of people"
+            placeholderTextColor={isDarkMode ? "#ccc" : "#555"}
             keyboardType="numeric"
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-6 text-base"
+            className={`rounded-lg px-4 py-3 mb-6 text-base ${inputBg} ${inputText} border ${borderColor}`}
           />
 
           {/* Submit Button */}
@@ -272,7 +272,7 @@ const handlePostJob = async () => {
             onPress={handlePostJob}
             disabled={loading}
             className={`rounded-lg py-4 items-center mb-10 ${
-              loading ? "bg-gray-400" : "bg-blue-500"
+              loading ? "bg-gray-400" : isDarkMode ? "bg-indigo-500" : "bg-blue-500"
             }`}
           >
             {loading ? (

@@ -13,19 +13,21 @@ import { useRouter } from "expo-router";
 import JobProfileCard from "@/components/JobProfileCards";
 import Search from "@/components/Search";
 import { getAllWorkerProfiles } from "@/lib/appwrite";
+import { useTheme } from "@/lib/ThemeContext";
 
-// Define DefaultDocument type if not imported from elsewhere
+// Define DefaultDocument type
 type DefaultDocument = {
   $id: string;
   fullName?: string;
   skills?: string[];
   rating?: number;
   availability?: string;
-  // Add other fields as needed based on your data structure
 };
 
-export default function jobProfile() {
+export default function JobProfileScreen() {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [allProfiles, setAllProfiles] = useState<DefaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,32 +56,34 @@ export default function jobProfile() {
     setRefreshing(false);
   };
 
-  // Filter profiles based on search
- // Filter profiles based on search & availability
-const filteredProfiles = allProfiles
-  .filter(
-    (p) =>
-      p.availability?.toLowerCase() === "available" ||
-      p.availability?.toLowerCase() === "busy"
-  )
-  .filter(
-    (profile) =>
-      profile.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      profile.skills?.some((skill: string) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-  );
-
+  // Filter profiles based on search & availability
+  const filteredProfiles = allProfiles
+    .filter(
+      (p) =>
+        p.availability?.toLowerCase() === "available" ||
+        p.availability?.toLowerCase() === "busy"
+    )
+    .filter(
+      (profile) =>
+        profile.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        profile.skills?.some((skill: string) =>
+          skill.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
 
   // Categorize profiles
-  const topRatedProfiles = filteredProfiles.filter(p => typeof p.rating === "number" && p.rating >= 4.5).slice(0, 6);
-  const availableProfiles = filteredProfiles.filter(p => p.availability === 'Available').slice(0, 6);
+  const topRatedProfiles = filteredProfiles
+    .filter((p) => typeof p.rating === "number" && p.rating >= 4.5)
+    .slice(0, 6);
+  const availableProfiles = filteredProfiles
+    .filter((p) => p.availability?.toLowerCase() === "available")
+    .slice(0, 6);
   const allOtherProfiles = filteredProfiles.slice(0, 10);
 
-  const handleProfilePress = (profile: { $id: any; }) => {
+  const handleProfilePress = (profile: { $id: any }) => {
     router.push({
       pathname: "../supportPages/WorkerProfile",
-      params: { profileId: profile.$id }
+      params: { profileId: profile.$id },
     });
   };
 
@@ -89,20 +93,34 @@ const filteredProfiles = allProfiles
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text className="text-gray-600 mt-4">Loading profiles...</Text>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        className="justify-center items-center"
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ color: colors.text }} className="mt-4">
+          Loading profiles...
+        </Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white mb-20">
-      <StatusBar barStyle="dark-content" backgroundColor="white" />
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      className="mb-20"
+    >
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
 
       {/* Header */}
       <View className="px-4 py-4">
-        <Text className="text-xl font-bold text-gray-800 text-center">
+        <Text
+          style={{ color: colors.text }}
+          className="text-xl font-bold text-center"
+        >
           Worker Profiles
         </Text>
       </View>
@@ -113,19 +131,29 @@ const filteredProfiles = allProfiles
         onChangeText={setSearchQuery}
         value={searchQuery}
         onPress={() => console.log("Searching...")}
+        placeholderTextColor={isDarkMode ? "#ccc" : "#888"}
+        inputBgColor={isDarkMode ? "#2c2c2c" : "#f1f1f1"}
+        inputTextColor={isDarkMode ? "#fff" : "#000"}
       />
 
-      <ScrollView 
-        className="flex-1" 
+      <ScrollView
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
         }
       >
         {/* Top Rated Profiles */}
         {topRatedProfiles.length > 0 && (
           <View className="mb-6">
-            <Text className="text-lg font-bold text-gray-800 px-4 mb-4 mt-4">
+            <Text
+              style={{ color: colors.text }}
+              className="text-lg font-bold px-4 mb-4 mt-4"
+            >
               ⭐ Top Rated Workers
             </Text>
             <View className="flex-row flex-wrap justify-evenly">
@@ -134,6 +162,7 @@ const filteredProfiles = allProfiles
                   key={profile.$id}
                   profile={profile}
                   onPress={handleProfilePress}
+                  isDarkMode={isDarkMode}
                 />
               ))}
             </View>
@@ -143,7 +172,10 @@ const filteredProfiles = allProfiles
         {/* Available Now */}
         {availableProfiles.length > 0 && (
           <View className="mb-6">
-            <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
+            <Text
+              style={{ color: colors.text }}
+              className="text-lg font-bold px-4 mb-4 mt-4"
+            >
               ✅ Available Now
             </Text>
             <View className="flex-row flex-wrap justify-evenly">
@@ -152,6 +184,7 @@ const filteredProfiles = allProfiles
                   key={profile.$id}
                   profile={profile}
                   onPress={handleProfilePress}
+                  isDarkMode={isDarkMode}
                 />
               ))}
             </View>
@@ -160,11 +193,17 @@ const filteredProfiles = allProfiles
 
         {/* All Workers */}
         <View className="mb-8">
-          <Text className="text-lg font-bold text-gray-800 px-4 mb-4">
+          <Text
+            style={{ color: colors.text }}
+            className="text-lg font-bold px-4 mb-4"
+          >
             All Workers
           </Text>
           {allOtherProfiles.length === 0 ? (
-            <Text className="text-center text-gray-500 py-10">
+            <Text
+              style={{ color: colors.textSecondary }}
+              className="text-center py-10"
+            >
               No worker profiles found
             </Text>
           ) : (
@@ -174,6 +213,7 @@ const filteredProfiles = allProfiles
                   key={profile.$id}
                   profile={profile}
                   onPress={handleProfilePress}
+                  isDarkMode={isDarkMode}
                 />
               ))}
             </View>
@@ -183,7 +223,10 @@ const filteredProfiles = allProfiles
 
       {/* Floating Add Button */}
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full justify-center items-center shadow-lg"
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full justify-center items-center shadow-lg"
+        style={{
+          backgroundColor: isDarkMode ? "#4f46e5" : "#6366f1",
+        }}
         onPress={handleAddProfile}
         activeOpacity={0.8}
       >

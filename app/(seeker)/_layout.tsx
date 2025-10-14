@@ -1,22 +1,35 @@
 import { Slot, Tabs } from "expo-router";
 import React from "react";
-
+import { Image, View } from "react-native";
+import { useTheme } from "@/lib/ThemeContext";
 import { images } from "@/constants";
 import { TabBarIconProps } from "@/type";
-import { Image, View } from "react-native";
 
-const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => (
-  <View className="tab-icon">
-    <Image
-      source={icon}
-      className="size-7"
-      resizeMode="contain"
-      tintColor={focused ? "#FE8C00" : "#5D5F6D"}
-    />
-  </View>
-);
+const TabBarIcon = ({ focused, icon, title }: TabBarIconProps) => {
+  const { isDarkMode } = useTheme();
+  return (
+    <View className="items-center justify-center">
+      <Image
+        source={icon}
+        className="w-7 h-7"
+        resizeMode="contain"
+        style={{
+          tintColor: focused
+            ? isDarkMode
+              ? "#FE8C00"
+              : "#FE8C00"
+            : isDarkMode
+            ? "#A0A0A0"
+            : "#5D5F6D",
+        }}
+      />
+    </View>
+  );
+};
 
 export default function TabLayout() {
+  const { colors, isDarkMode } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -25,15 +38,15 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: "600",
-          color: "#5D5F6D",
+          color: isDarkMode ? "#E5E5E5" : "#5D5F6D",
         },
         tabBarStyle: {
           marginHorizontal: 0,
           height: 70,
           position: "absolute",
           bottom: 0,
-          backgroundColor: "white",
-          shadowColor: "#1a1a1a",
+          backgroundColor: isDarkMode ? "#1F1F1F" : "#FFFFFF",
+          shadowColor: "#000",
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
@@ -63,14 +76,13 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="post"
-        options={({ navigation, route }) => ({
+        options={{
           title: "Post Jobs",
           tabBarIcon: ({ focused }) => (
             <TabBarIcon title="Post" icon={images.post} focused={focused} />
           ),
-          // Hide tab bar on this screen
-          tabBarStyle: { display: "none" },
-        })}
+          tabBarStyle: { display: "none" }, // Hide tab bar on post screen
+        }}
       />
 
       <Tabs.Screen
@@ -78,12 +90,16 @@ export default function TabLayout() {
         options={{
           title: "Notifications",
           tabBarIcon: ({ focused }) => (
-            <TabBarIcon title="notifications" icon={images.notification} focused={focused} />
+            <TabBarIcon
+              title="notifications"
+              icon={images.notification}
+              focused={focused}
+            />
           ),
         }}
       />
 
-       <Tabs.Screen
+      <Tabs.Screen
         name="jobProfile"
         options={{
           title: "Job Profiles",
@@ -96,6 +112,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Slot />
     </Tabs>
   );
