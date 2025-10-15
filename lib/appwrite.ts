@@ -19,6 +19,9 @@ export const appwriteConfig = {
   userCollectionId: "user", // ✅ users collection ID
   jobCollectionId: "post", // ✅ jobs collection ID
   workerCollectionId: "profile", // ✅ workers collection ID
+
+  notificationsCollectionId: "notifications",
+  applicationsCollectionId : "applications",
   bucketId: "68e419d9000d5c34f15a", // ✅ your storage bucket ID
 };
 
@@ -312,3 +315,340 @@ export const getAllWorkerProfiles = async () => {
   }
 };
 
+
+
+
+/**
+ * Create an application record when worker applies for a job
+ */
+// export const createJobApplication = async (applicationData: {
+//   jobId: string;
+//   workerId: string;
+//   posterId: string;
+//   workerName: string;
+//   workerEmail: string;
+//   workerPhone?: string;
+//   workerAvatar: string;
+//   jobTitle: string;
+//   jobPay: string;
+//   jobCity: string;
+//   jobStartDate: string;
+// }) => {
+//   try {
+//     console.log("📝 Creating job application...");
+
+//     const application = await databases.createDocument(
+//       appwriteConfig.databaseId,
+//       appwriteConfig.applicationsCollectionId,
+//       ID.unique(),
+//       {
+//         ...applicationData,
+//         status: "PENDING",
+//         appliedAt: new Date().toISOString(),
+//       }
+//     );
+
+//     console.log("✅ Application created:", application.$id);
+//     return application;
+//   } catch (error) {
+//     console.error("❌ Error creating application:", error);
+//     throw error;
+//   }
+// };
+
+
+// ======================================================================
+// 📋 APPLICATION MANAGEMENT FUNCTIONS
+// ======================================================================
+
+export const createJobApplication = async (applicationData: any) => {
+  try {
+    const response = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      ID.unique(),
+      {
+        jobId: applicationData.jobId,
+        workerId: applicationData.workerId,
+        posterId: applicationData.posterId,
+        workerName: applicationData.workerName,
+        workerEmail: applicationData.workerEmail,
+        workerPhone: applicationData.workerPhone || "",
+        workerAvatar: applicationData.workerAvatar || "",
+        jobTitle: applicationData.jobTitle,
+        jobPay: applicationData.jobPay,
+        jobCity: applicationData.jobCity,
+        jobStartDate: applicationData.jobStartDate,
+        status: "PENDING",
+        appliedAt: new Date().toISOString(),
+      }
+    );
+    console.log("✅ Application Created:", response.$id);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error creating application:", error);
+    throw new Error(error?.message || "Failed to create application");
+  }
+};
+
+export const getApplicationsByWorker = async (workerId: string) => {
+  try {
+    const applications = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      [Query.equal("workerId", workerId), Query.orderDesc("appliedAt")]
+    );
+    return applications.documents;
+  } catch (error: any) {
+    console.error("❌ Error fetching worker applications:", error);
+    throw new Error(error?.message || "Failed to fetch applications");
+  }
+};
+
+export const getApplicationsByJob = async (jobId: string) => {
+  try {
+    const applications = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      [Query.equal("jobId", jobId), Query.orderDesc("appliedAt")]
+    );
+    return applications.documents;
+  } catch (error: any) {
+    console.error("❌ Error fetching job applications:", error);
+    throw new Error(error?.message || "Failed to fetch applications");
+  }
+};
+
+export const checkIfAlreadyApplied = async (jobId: string, workerId: string) => {
+  try {
+    const applications = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      [Query.equal("jobId", jobId), Query.equal("workerId", workerId)]
+    );
+    return applications.total > 0;
+  } catch (error: any) {
+    console.error("❌ Error checking application status:", error);
+    return false;
+  }
+};
+
+export const updateApplicationStatus = async (applicationId: string, status: string) => {
+  try {
+    const response = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      applicationId,
+      {
+        status,
+        ...(status === "ACCEPTED" && { acceptedAt: new Date().toISOString() }),
+        ...(status === "REJECTED" && { rejectedAt: new Date().toISOString() }),
+      }
+    );
+    console.log("✅ Application Status Updated:", status);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error updating application:", error);
+    throw new Error(error?.message || "Failed to update application");
+  }
+};
+
+// ======================================================================
+// 🔔 NOTIFICATION MANAGEMENT FUNCTIONS
+// ======================================================================
+
+// Helper: Convert objects safely to string
+const stringifyData = (data: any): string => {
+  try {
+    return JSON.stringify(data);
+  } catch (e) {
+    console.error("Error stringifying data:", e);
+    return "";
+  }
+};
+
+// Helper: Parse string back to object
+export const parseNotificationData = (dataString: string): any => {
+  try {
+    return dataString ? JSON.parse(dataString) : {};
+  } catch (e) {
+    console.error("Error parsing notification data:", e);
+    return {};
+  }
+};
+
+export const createNotification = async (notificationData: any) => {
+  try {
+    const response = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      ID.unique(),
+      {
+        recipientId: notificationData.recipientId,
+        senderId: notificationData.senderId || "",
+        type: notificationData.type,
+        title: notificationData.title,
+        message: notificationData.message,
+        jobId: notificationData.jobId || "",
+        applicationId: notificationData.applicationId || "",
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        jobDetails: stringifyData(notificationData.jobDetails || {}),
+        workerDetails: stringifyData(notificationData.workerDetails || {}),
+      }
+    );
+    console.log("✅ Notification Created:", response.$id);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Error creating notification:", error);
+    throw new Error(error?.message || "Failed to create notification");
+  }
+};
+
+export const getNotifications = async (userId: string | number | boolean | any[]) => {
+  const res = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.notificationsCollectionId,
+    [
+      Query.equal("recipientId", userId),
+      Query.orderDesc("$createdAt"),
+      Query.limit(50),
+    ]
+  );
+  return res.documents;
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  try {
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      notificationId,
+      { isRead: true }
+    );
+    console.log("✅ Notification marked as read");
+  } catch (error: any) {
+    console.error("❌ Error marking notification as read:", error);
+    throw new Error(error?.message || "Failed to mark notification as read");
+  }
+};
+
+export const getUnreadNotificationCount = async (userId: string) => {
+  try {
+    const unread = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      [Query.equal("recipientId", userId), Query.equal("isRead", false)]
+    );
+    return unread.total;
+  } catch (error: any) {
+    console.error("❌ Error fetching unread count:", error);
+    return 0;
+  }
+};
+
+export const deleteNotification = async (notificationId: string) => {
+  try {
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      notificationId
+    );
+    console.log("✅ Notification deleted");
+  } catch (error: any) {
+    console.error("❌ Error deleting notification:", error);
+    throw new Error(error?.message || "Failed to delete notification");
+  }
+};
+
+export const updateNotificationStatus = async (
+  notificationId: string,
+  status: "ACCEPTED" | "REJECTED"
+) => {
+  try {
+    const updated = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      notificationId,
+      {
+        status: status,
+        $updatedAt: new Date().toISOString(),
+      }
+    );
+    console.log("Notification updated:", updated);
+    return updated;
+  } catch (error) {
+    console.error("Error updating notification:", error);
+    throw error;
+  }
+};
+
+// ======================================================================
+// ✅ ACCEPT & REJECT APPLICATION HELPERS + AUTO NOTIFICATIONS
+// ======================================================================
+
+export const acceptApplication = async (application: any, workerDetails: any, jobDetails: any) => {
+  try {
+    const updated = await updateApplicationStatus(application.$id, "ACCEPTED");
+
+    // Send notification to worker
+    await createNotification({
+      recipientId: application.workerId,
+      senderId: application.posterId,
+      type: "APPLICATION_ACCEPTED",
+      title: "🎉 Application Accepted",
+      message: `Your application for "${application.jobTitle}" has been accepted!`,
+      jobId: application.jobId,
+      applicationId: application.$id,
+      jobDetails: {
+        title: application.jobTitle,
+        pay: application.jobPay,
+        city: application.jobCity,
+      },
+      workerDetails: {
+        id: application.workerId,
+        name: application.workerName,
+        email: application.workerEmail,
+        avatar: application.workerAvatar,
+      },
+    });
+
+    return updated;
+  } catch (error: any) {
+    console.error("❌ Error accepting application:", error);
+    throw new Error(error?.message || "Failed to accept application");
+  }
+};
+
+export const rejectApplication = async (application: any, workerDetails: any, jobDetails: any) => {
+  try {
+    const updated = await updateApplicationStatus(application.$id, "REJECTED");
+
+    // Send notification to worker
+    await createNotification({
+      recipientId: application.workerId,
+      senderId: application.posterId,
+      type: "APPLICATION_REJECTED",
+      title: "❌ Application Rejected",
+      message: `Your application for "${application.jobTitle}" has been rejected.`,
+      jobId: application.jobId,
+      applicationId: application.$id,
+      jobDetails: {
+        title: application.jobTitle,
+        pay: application.jobPay,
+        city: application.jobCity,
+      },
+      workerDetails: {
+        id: application.workerId,
+        name: application.workerName,
+        email: application.workerEmail,
+        avatar: application.workerAvatar,
+      },
+    });
+
+    return updated;
+  } catch (error: any) {
+    console.error("❌ Error rejecting application:", error);
+    throw new Error(error?.message || "Failed to reject application");
+  }
+};

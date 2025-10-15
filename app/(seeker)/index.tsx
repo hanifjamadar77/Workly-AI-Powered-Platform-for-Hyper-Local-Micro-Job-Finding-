@@ -1,3 +1,4 @@
+import "react-native-gesture-handler";
 import GeminiChatbot from "@/components/GeminiChatbot";
 import Header from "@/components/Header";
 import ImageSlider from "@/components/ImageSlider";
