@@ -235,6 +235,15 @@ export default function MainProfileScreen() {
             iconColor="text-gray-800"
             textColor="text-indigo-600"
           />
+
+           <ProfileMenuItem
+            icon="👤"
+            title="Requested Jobs"
+            screenName="profileScreens/requestedJobs"
+            iconColor="text-gray-800"
+            textColor="text-indigo-600"
+          />
+
           <ProfileMenuItem
             icon="💳"
             title="Payment Method"

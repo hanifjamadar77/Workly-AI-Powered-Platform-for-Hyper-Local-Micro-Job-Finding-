@@ -97,14 +97,14 @@ export default function PostedJobsScreen() {
         <Text className="text-xs text-gray-500">
           Posted: {new Date(job.createdDate).toLocaleDateString()}
         </Text>
-        {/* <View className="flex-row">
-          <TouchableOpacity className="bg-indigo-100 px-3 py-2 rounded-lg mr-2">
+        <View className="flex-row">
+          {/* <TouchableOpacity className="bg-indigo-100 px-3 py-2 rounded-lg mr-2">
             <Text className="text-indigo-600 text-xs font-medium">Edit</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity className="bg-red-100 px-3 py-2 rounded-lg">
             <Text className="text-red-600 text-xs font-medium">Delete</Text>
           </TouchableOpacity>
-        </View> */}
+        </View>
       </View>
     </TouchableOpacity>
   );
