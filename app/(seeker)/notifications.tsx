@@ -31,8 +31,8 @@ interface NotificationData {
 
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
-  const [filter, setFilter] = useState<
-    "ALL" | "PENDING" | "ACCEPTED" | "REJECTED"
+  const [filter, setFilter] = useState
+   < "ALL" | "PENDING" | "ACCEPTED" | "REJECTED"
   >("ALL");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,6 +70,8 @@ const NotificationsScreen = () => {
     if (!currentUserId) return;
     try {
       setLoading(true);
+      console.log("📥 Fetching notifications for user:", currentUserId);
+
       const response = await databases.listDocuments(
         appwriteConfig.databaseId,
         appwriteConfig.notificationsCollectionId,
@@ -80,29 +82,66 @@ const NotificationsScreen = () => {
         ]
       );
 
+      console.log("✅ Fetched notifications count:", response.documents.length);
+
       const parsed = await Promise.all(
         response.documents.map(async (doc: any) => {
-          const jobStatus = doc.applicationId
-            ? (
-                await databases.getDocument(
-                  appwriteConfig.databaseId,
-                  appwriteConfig.applicationsCollectionId,
-                  doc.applicationId
-                )
-              ).status
-            : "PENDING";
+          let jobStatus = "PENDING";
+          let workerProfileId = null;
+
+          // ✅ Only fetch application status if applicationId exists
+          if (doc.applicationId) {
+            try {
+              const application = await databases.getDocument(
+                appwriteConfig.databaseId,
+                appwriteConfig.applicationsCollectionId,
+                doc.applicationId
+              );
+              jobStatus = application.status;
+
+              // ✅ Get worker profile ID from application
+              if (application.workerId) {
+                try {
+                  const workerProfiles = await databases.listDocuments(
+                    appwriteConfig.databaseId,
+                    appwriteConfig.workerCollectionId,
+                    [Query.equal("userId", application.workerId), Query.limit(1)]
+                  );
+
+                  if (workerProfiles.documents.length > 0) {
+                    workerProfileId = workerProfiles.documents[0].$id;
+                    console.log("✅ Found worker profile:", workerProfileId);
+                  }
+                } catch (profileErr) {
+                  console.warn("⚠️ Could not fetch worker profile:", profileErr);
+                }
+              }
+            } catch (err) {
+              console.warn("⚠️ Could not fetch application status:", err);
+            }
+          }
+
+          const parsedWorkerDetails = safeParse(doc.workerDetails);
 
           return {
             ...doc,
             jobDetails: safeParse(doc.jobDetails),
-            workerDetails: safeParse(doc.workerDetails),
+            workerDetails: parsedWorkerDetails
+              ? {
+                  ...parsedWorkerDetails,
+                  profileId: workerProfileId || parsedWorkerDetails.profileId,
+                }
+              : null,
             status: jobStatus,
           };
         })
       );
 
+      console.log("✅ Parsed notifications:", parsed.length);
       setNotifications(parsed);
+      setError(null);
     } catch (err: any) {
+      console.error("❌ Failed to load notifications:", err);
       setError("Failed to load notifications: " + err.message);
       setNotifications([]);
     } finally {
@@ -115,9 +154,20 @@ const NotificationsScreen = () => {
   const sendResponseNotification = async (
     workerId: string,
     jobTitle: string,
-    action: "ACCEPTED" | "REJECTED"
+    action: "ACCEPTED" | "REJECTED",
+    workerDetails?: any,
+    jobDetails?: any
   ) => {
     try {
+      // ✅ Fetch worker profile to get the actual profile document ID
+      const workerProfile = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.workerCollectionId,
+        [Query.equal("userId", workerId), Query.limit(1)]
+      );
+
+      const profileId = workerProfile.documents[0]?.$id || workerId;
+
       await databases.createDocument(
         appwriteConfig.databaseId,
         appwriteConfig.notificationsCollectionId,
@@ -131,8 +181,11 @@ const NotificationsScreen = () => {
               ? "🎉 Congratulations! Your job request was accepted."
               : "❌ Unfortunately, your job request was rejected.",
           type: "RESPONSE",
-          // status: action,
-          applicationStatus: action,
+          workerDetails: JSON.stringify({
+            ...workerDetails,
+            profileId: profileId,
+          }),
+          jobDetails: jobDetails ? JSON.stringify(jobDetails) : null,
           createdAt: new Date().toISOString(),
         }
       );
@@ -143,53 +196,42 @@ const NotificationsScreen = () => {
   };
 
   // ✅ Handle Accept
- const handleAccept = async (notification: NotificationData) => {
-  try {
-    // 1️⃣ Check if applicationId exists
-    if (!notification.applicationId)
-      throw new Error("Missing application ID");
+  const handleAccept = async (notification: NotificationData) => {
+    try {
+      if (!notification.applicationId)
+        throw new Error("Missing application ID");
 
-    // 2️⃣ Update application status permanently
-    await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.applicationsCollectionId,
-      notification.applicationId,
-      { status: "ACCEPTED" }
-    );
-
-    // 3️⃣ Notify the worker
-    if (notification.workerDetails?.id) {
-      await sendResponseNotification(
-        notification.workerDetails.id,
-        notification.jobDetails?.title,
-        "ACCEPTED"
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.applicationsCollectionId,
+        notification.applicationId,
+        { status: "ACCEPTED" }
       );
-    }
 
-    // 4️⃣ Notify the job requester (poster)
-    const posterId = notification.jobDetails?.posterId;
-    if (posterId) {
-      await sendResponseNotification(
-        posterId,
-        notification.jobDetails?.title,
-        "ACCEPTED"
+      if (notification.workerDetails?.id) {
+        await sendResponseNotification(
+          notification.workerDetails.id,
+          notification.jobDetails?.title || "Job",
+          "ACCEPTED",
+          notification.workerDetails,
+          notification.jobDetails
+        );
+      }
+
+      // ✅ Reload notifications to get updated profile IDs
+      if (userId) {
+        await loadNotifications(userId);
+      }
+
+      Alert.alert(
+        "✅ Success",
+        "You have accepted this request. Tap the notification to view worker profile."
       );
+    } catch (err: any) {
+      console.error("Failed to accept request:", err);
+      Alert.alert("Error", "Failed to accept request: " + err.message);
     }
-
-    // 5️⃣ Update local notifications state for UI
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.$id === notification.$id ? { ...n, status: "ACCEPTED" } : n
-      )
-    );
-
-    // 6️⃣ Show success alert
-    Alert.alert("✅ Success", "You have accepted this request.");
-  } catch (err: any) {
-    console.error("Failed to accept request:", err);
-    Alert.alert("Error", "Failed to accept request: " + err.message);
-  }
-};
+  };
 
   // ✅ Handle Reject
   const handleReject = async (notification: NotificationData) => {
@@ -197,7 +239,6 @@ const NotificationsScreen = () => {
       if (!notification.applicationId)
         throw new Error("Missing application ID");
 
-      // 1️⃣ Update the application status permanently
       await databases.updateDocument(
         appwriteConfig.databaseId,
         appwriteConfig.applicationsCollectionId,
@@ -205,23 +246,21 @@ const NotificationsScreen = () => {
         { status: "REJECTED" }
       );
 
-      // 2️⃣ Send a notification to the worker
-      await sendResponseNotification(
-        notification.workerDetails?.id,
-        notification.jobDetails?.title,
-        "REJECTED"
-      );
+      if (notification.workerDetails?.id) {
+        await sendResponseNotification(
+          notification.workerDetails.id,
+          notification.jobDetails?.title || "Job",
+          "REJECTED",
+          notification.workerDetails,
+          notification.jobDetails
+        );
+      }
 
-      // 3️⃣ Update local UI immediately
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.$id === notification.$id
-            ? { ...n, status: "REJECTED" } // optional for UI only
-            : n
-        )
-      );
+      // ✅ Reload notifications
+      if (userId) {
+        await loadNotifications(userId);
+      }
 
-      // 4️⃣ Correct alert message
       Alert.alert("❌ Rejected", "You have rejected this request.");
     } catch (err: any) {
       console.error("Failed to reject notification:", err);
@@ -229,13 +268,86 @@ const NotificationsScreen = () => {
     }
   };
 
+  // ✅ Handle notification card click - Navigate to worker profile
+const handleNotificationPress = async (notification: NotificationData) => {
+  console.log("🔍 Notification clicked:", notification);
+
+  // ✅ Step 1: Allow only ACCEPTED notifications
+  if (notification.status !== "ACCEPTED") {
+    Alert.alert(
+      "Request Pending",
+      notification.status === "REJECTED"
+        ? "This worker’s request was rejected."
+        : "You can view the worker profile only after accepting the request."
+    );
+    return;
+  }
+
+  const worker = notification.workerDetails;
+  if (!worker) {
+    Alert.alert("⚠️ Error", "Worker details missing in this notification.");
+    return;
+  }
+
+  try {
+    let workerProfile = null;
+
+    console.log("🔎 Searching for worker by userId:", worker.id);
+
+    // ✅ Step 2: Search by userId (most accurate)
+    const byUserId = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.workerCollectionId,
+      [Query.equal("userId", worker.id)]
+    );
+
+    if (byUserId.total > 0) {
+      workerProfile = byUserId.documents[0];
+      console.log("✅ Worker found by userId:", workerProfile.$id);
+    } else {
+      // ✅ Step 3: Fallback search by name (in case userId not stored)
+      console.log("🔎 No match by userId, searching by name:", worker.name);
+
+      const byName = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.workerCollectionId,
+        [Query.equal("fullName", worker.name)]
+      );
+
+      if (byName.total > 0) {
+        workerProfile = byName.documents[0];
+        console.log("✅ Worker found by name:", workerProfile.$id);
+      }
+    }
+
+    // ✅ Step 4: If no match, show alert
+    if (!workerProfile) {
+      Alert.alert(
+        "Profile Not Found",
+        "This worker hasn’t created their profile yet."
+      );
+      return;
+    }
+
+    // ✅ Step 5: Navigate to the worker profile screen
+    router.push({
+      pathname: "./supportPages/WorkerProfile",
+      params: { profileId: workerProfile.$id },
+    });
+  } catch (error) {
+    console.error("❌ Error fetching worker profile:", error);
+    Alert.alert("Error", "Something went wrong while fetching worker profile.");
+  }
+};
+
+
   // ✅ Initial load
   useEffect(() => {
     (async () => {
       const id = await loadUserId();
       if (id) await loadNotifications(id);
     })();
-  }, []);
+  }, [loadUserId, loadNotifications]);
 
   // ✅ Refresh on focus
   useEffect(() => {
@@ -276,6 +388,20 @@ const NotificationsScreen = () => {
     );
   }
 
+  if (error && notifications.length === 0) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Text style={styles.errorText}>⚠️ {error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => userId && loadNotifications(userId)}
+        >
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* ✅ Filter Buttons */}
@@ -310,17 +436,19 @@ const NotificationsScreen = () => {
         }
         contentContainerStyle={{ padding: 12 }}
         renderItem={({ item }) => {
-          //  console.log("Rendering notification:", item.$id, item.status, item.workerDetails, item.jobDetails);
           const colors = getStatusColors(item.status || "PENDING");
           const job = item.jobDetails || {};
           const worker = item.workerDetails || {};
+          const isAccepted = item.status === "ACCEPTED";
 
           return (
-            <View
+            <TouchableOpacity
               style={[
                 styles.card,
                 { borderColor: colors.border, backgroundColor: colors.bg },
               ]}
+              onPress={() => handleNotificationPress(item)}
+              activeOpacity={isAccepted ? 0.7 : 1}
             >
               <Text style={styles.workerName}>
                 👷 {worker.name || "Unknown Worker"}
@@ -336,6 +464,13 @@ const NotificationsScreen = () => {
               </Text>
 
               <Text style={styles.message}>{item.message}</Text>
+
+              {/* ✅ Show tap hint for accepted notifications */}
+              {isAccepted && (
+                <Text style={styles.tapHint}>
+                  👆 Tap to view worker profile & contact
+                </Text>
+              )}
 
               {(item.status || "PENDING") === "PENDING" && (
                 <View style={styles.actionButtons}>
@@ -353,7 +488,7 @@ const NotificationsScreen = () => {
                   </TouchableOpacity>
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
@@ -377,6 +512,19 @@ const styles = StyleSheet.create({
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, color: "#6B7280", fontWeight: "500" },
+  errorText: {
+    fontSize: 16,
+    color: "#EF4444",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "#5B7FFF",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: { color: "#fff", fontWeight: "600" },
   filterContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -410,7 +558,16 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 4,
   },
-  // actionButtons: { flexDirection: "row", gap: 10, marginTop: 10 },
+  tapHint: {
+    fontSize: 11,
+    color: "#10B981",
+    fontWeight: "600",
+    marginTop: 8,
+    textAlign: "center",
+    paddingVertical: 6,
+    backgroundColor: "#D1FAE5",
+    borderRadius: 8,
+  },
   btn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: "center" },
   actionButtons: { flexDirection: "row", marginTop: 10 },
   acceptBtn: {
