@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import Header from '@/components/profileHeader';
+import { deleteJobAndApplications, getCurrentUser, getJobsByUser } from '@/lib/appwrite';
+import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { getJobsByUser, getCurrentUser } from '@/lib/appwrite';
-import { useRouter } from 'expo-router';
-import { images } from "@/constants";
-import Header from '@/components/profileHeader';
 
 export default function PostedJobsScreen() {
   const router = useRouter();
@@ -59,6 +59,33 @@ export default function PostedJobsScreen() {
     fetchUserJobs();
   }, []);
 
+  const handleDeleteJob = async (jobId) => {
+  try {
+    Alert.alert(
+      "Delete Job",
+      "Are you sure you want to delete this job? This will remove all related applications too.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            await deleteJobAndApplications(jobId);
+            setJobs((prevJobs) => prevJobs.filter((job) => job.$id !== jobId));
+            setLoading(false);
+            Alert.alert("Success", "Job deleted successfully!");
+          },
+        },
+      ]
+    );
+  } catch (error) {
+    Alert.alert("Error", "Failed to delete job. Please try again.");
+    console.error(error);
+  }
+};
+
+
   const JobCard = ({ job }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
@@ -101,7 +128,9 @@ export default function PostedJobsScreen() {
           {/* <TouchableOpacity className="bg-indigo-100 px-3 py-2 rounded-lg mr-2">
             <Text className="text-indigo-600 text-xs font-medium">Edit</Text>
           </TouchableOpacity> */}
-          <TouchableOpacity className="bg-red-100 px-3 py-2 rounded-lg">
+          <TouchableOpacity className="bg-red-100 px-3 py-2 rounded-lg"
+          onPress={() => handleDeleteJob(job.$id)}
+          >
             <Text className="text-red-600 text-xs font-medium">Delete</Text>
           </TouchableOpacity>
         </View>
@@ -166,14 +195,14 @@ export default function PostedJobsScreen() {
       )}
 
       {/* Floating Action Button */}
-      {!loading && jobs.length > 0 && (
+      {/* {!loading && jobs.length > 0 && (
         <TouchableOpacity
           className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full justify-center items-center shadow-lg"
           onPress={() => router.replace('/(seeker)/post')}
         >
           <Text className="text-white text-2xl">+</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </SafeAreaView>
   );
 }

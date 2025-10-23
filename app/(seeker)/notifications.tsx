@@ -331,7 +331,7 @@ const handleNotificationPress = async (notification: NotificationData) => {
 
     // ✅ Step 5: Navigate to the worker profile screen
     router.push({
-      pathname: "./supportPages/WorkerProfile",
+      pathname: "/supportPages/WorkerProfile",
       params: { profileId: workerProfile.$id },
     });
   } catch (error) {

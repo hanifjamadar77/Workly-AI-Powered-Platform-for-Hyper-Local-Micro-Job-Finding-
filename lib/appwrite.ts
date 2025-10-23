@@ -4,10 +4,9 @@ import {
   Client,
   Databases,
   ID,
-  Models,
   Query,
   QueryTypesList,
-  Storage,
+  Storage
 } from "react-native-appwrite";
 
 // ⚙️ Appwrite Configuration
@@ -217,6 +216,62 @@ export const getJobsByUser = async (userId: any) => {
   } catch (error) {
     console.error("❌ Error fetching user jobs:", error);
     throw new Error("Failed to fetch user jobs");
+  }
+};
+
+// ======================================================================
+// 🗑️ DELETE JOB (and related applications + notifications)
+// ======================================================================
+export const deleteJobAndApplications = async (jobId: string) => {
+  try {
+    console.log("🧹 Starting full delete for job:", jobId);
+
+    // 1️⃣ Delete all applications related to this job
+    const applications = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.applicationsCollectionId,
+      [Query.equal("jobId", jobId)]
+    );
+
+    for (const app of applications.documents) {
+      await databases.deleteDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.applicationsCollectionId,
+        app.$id
+      );
+    }
+
+    console.log(`🗑️ Deleted ${applications.total} applications for job ${jobId}`);
+
+    // 2️⃣ Delete all notifications related to this job
+    const notifications = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId, // ⚠️ Make sure this ID is set correctly in appwriteConfig
+      [Query.equal("jobId", jobId)]
+    );
+
+    for (const notif of notifications.documents) {
+      await databases.deleteDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.notificationsCollectionId,
+        notif.$id
+      );
+    }
+
+    console.log(`🗑️ Deleted ${notifications.total} notifications for job ${jobId}`);
+
+    // 3️⃣ Delete the actual job post
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.jobCollectionId,
+      jobId
+    );
+
+    console.log("✅ Job deleted successfully:", jobId);
+    return true;
+  } catch (error: any) {
+    console.error("❌ Error deleting job completely:", error);
+    throw new Error(error?.message || "Failed to delete job completely");
   }
 };
 
