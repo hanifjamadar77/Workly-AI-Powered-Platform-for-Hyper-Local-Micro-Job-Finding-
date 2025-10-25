@@ -53,7 +53,7 @@ export const createUser = async ({
     if (!newAccount) throw new Error("Failed to create account");
 
     // 2️⃣ Login to activate session
-    await signup({ email, password });
+    await signIn({ email, password });
 
     // 3️⃣ Wait for session to become active
     await account.get();
@@ -83,14 +83,24 @@ export const createUser = async ({
 };
 
 // 🔹 Login user
-export const signup = async ({ email, password }: { email: string; password: string }) => {
+// 🔹 SIGN IN (Login)
+export const signIn = async ({ email, password }: { email: string; password: string }) => {
   try {
-    return await account.createEmailPasswordSession(email, password);
-  } catch (e : any) {
-    console.error("❌ Signup error:", e);
-    throw new Error(e?.message || "Signup failed");
+    try {
+      await account.deleteSession('current');
+    } catch (error) {
+      // No existing session
+    }
+
+    const session = await account.createEmailPasswordSession(email, password);
+    console.log("✅ Login successful");
+    return session;
+  } catch (e: any) {
+    console.error("❌ Login error:", e);
+    throw new Error(e?.message || "Login failed");
   }
 };
+
 
 // 🔹 Get current logged-in user
 export const getCurrentUser = async () => {
@@ -111,6 +121,17 @@ export const getCurrentUser = async () => {
   } catch (e : any) {
     console.error("❌ getCurrentUser error:", e);
     throw new Error(e?.message || "Failed to fetch user");
+  }
+};
+
+export const signOut = async () => {
+  try {
+    await account.deleteSession('current');
+    console.log("✅ User logged out successfully");
+    return true;
+  } catch (error: any) {
+    console.error("❌ Logout error:", error);
+    throw new Error(error?.message || "Failed to logout");
   }
 };
 

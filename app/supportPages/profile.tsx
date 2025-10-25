@@ -282,7 +282,7 @@ export default function MainProfileScreen() {
           <ProfileMenuItem
             icon="🚪"
             title="Log Out"
-            screenName="Logout"
+            screenName="profileScreens/logOut"
             iconColor="text-gray-800"
             textColor="text-indigo-600"
           />

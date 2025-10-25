@@ -14,12 +14,12 @@ export default function TabLayout() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <ScrollView className='bg-white h-full' keyboardShouldPersistTaps='handled'>
-        <View className='w-full relative' style={{ height: Dimensions.get('screen').height / 2.25 }}>
+        {/* <View className='w-full relative' style={{ height: Dimensions.get('screen').height / 2.25 }}>
           <ImageBackground source={images.keyBg} className='size-full rounded-b-lg' resizeMode='stretch' />
           <View className='absolute self-center my-72 rounded-full bg-blue-100'>
           <Image source={images.logo} className="self-center size-48 z-10" />
           </View>
-        </View>
+        </View> */}
         
         <Slot />
       </ScrollView>
