@@ -1,4 +1,3 @@
-import "react-native-gesture-handler";
 import GeminiChatbot from "@/components/GeminiChatbot";
 import Header from "@/components/Header";
 import ImageSlider from "@/components/ImageSlider";
@@ -22,11 +21,13 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Job {
@@ -52,6 +53,7 @@ const Home = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
   const [nearbyJobs, setNearbyJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lon: number;
@@ -156,6 +158,12 @@ const Home = () => {
     );
   }
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadUserAndJobs();
+    setRefreshing(false);
+  };
+
   const handleSearch = () => console.log("Searching...");
   const handleFocus = () => router.replace("/(seeker)/jobs");
 
@@ -171,6 +179,12 @@ const Home = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
+         refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }
       >
         <View className="mt-4">
           <Header
@@ -232,7 +246,10 @@ const Home = () => {
                   </Text>
                 </View>
               ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
                   <View className="flex-row">
                     {nearbyJobs.map((job) => (
                       <View

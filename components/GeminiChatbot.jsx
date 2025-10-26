@@ -1,19 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Modal,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  SafeAreaView,
+  View
 } from "react-native";
 
-const API_KEY = "";
+const API_KEY = "AIzaSyAvO4QRvfbX9dxhxvJcLkMtWyq9JcVP7hE";
 
 const WORKLY_SYSTEM_PROMPT = `You are Luci, an intelligent AI assistant for Workly - a workforce management and job platform. 
 

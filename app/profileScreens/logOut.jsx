@@ -34,10 +34,10 @@ export default function LogoutScreen() {
           onPress: async () => {
             try {
               setLoggingOut(true);
-              
+
               // Sign out from Appwrite
               await signOut();
-              
+
               // Show success message
               Alert.alert(
                 "Logged Out",
@@ -47,7 +47,10 @@ export default function LogoutScreen() {
                     text: "OK",
                     onPress: () => {
                       // Navigate to sign-in screen
-                      router.push("/(auth)/login");
+                      router.replace({
+                        pathname: "/(auth)/login",
+                        params: { reload: Date.now().toString() },
+                      });
                     },
                   },
                 ]
@@ -133,9 +136,7 @@ export default function LogoutScreen() {
           ) : (
             <View className="flex-row items-center">
               <Ionicons name="log-out-outline" size={24} color="#fff" />
-              <Text className="text-white text-lg font-bold ml-2">
-                Logout
-              </Text>
+              <Text className="text-white text-lg font-bold ml-2">Logout</Text>
             </View>
           )}
         </TouchableOpacity>

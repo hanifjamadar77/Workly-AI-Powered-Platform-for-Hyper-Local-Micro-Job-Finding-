@@ -29,8 +29,8 @@ import man from "@/assets/images/man.png";
 import women from "@/assets/images/woman.png";
 import worker from "@/assets/images/worker-man.png";
 
-import keyBg from "@/assets/images/key.png";
 import logo from "@/assets/images/logo.png";
+import Slogo from "@/assets/images/Slogo.png";
 import chat from "@/assets/images/chat.jpg";
 
 export const images = {
@@ -44,8 +44,8 @@ export const images = {
     worker,
     women,
 
-    keyBg,
     logo,
+    Slogo,
     chat,
 
     arrowBack,
