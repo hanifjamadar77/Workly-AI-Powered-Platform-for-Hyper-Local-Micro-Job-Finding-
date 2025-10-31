@@ -229,7 +229,7 @@ export default function MainProfileScreen() {
             textColor="text-indigo-600"
           />
           <ProfileMenuItem
-            icon="👤"
+            icon="📄"
             title="Posted Jobs"
             screenName="profileScreens/postedJobs"
             iconColor="text-gray-800"
@@ -237,7 +237,7 @@ export default function MainProfileScreen() {
           />
 
            <ProfileMenuItem
-            icon="👤"
+            icon="📋"
             title="Requested Jobs"
             screenName="profileScreens/requestedJobs"
             iconColor="text-gray-800"

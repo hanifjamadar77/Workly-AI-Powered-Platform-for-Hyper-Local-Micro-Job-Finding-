@@ -1,6 +1,6 @@
 import GeminiChatbot from "@/components/GeminiChatbot";
 import Header from "@/components/Header";
-import ImageSlider from "@/components/ImageSlider";
+import ImageSlider from '@/components/ImageSlider';
 import JobCard from "@/components/JobCard";
 import Search from "@/components/Search";
 import { images } from "@/constants";
@@ -179,12 +179,9 @@ const Home = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
-         refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                    />
-                  }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         <View className="mt-4">
           <Header
@@ -201,9 +198,7 @@ const Home = () => {
           />
 
           <View className="mx-4">
-            <View className={isDarkMode ? "bg-gray-800" : "bg-gray-50"}>
-              <ImageSlider images={Sliderimages} autoPlayInterval={4000} />
-            </View>
+             <ImageSlider images={Sliderimages} autoPlayInterval={3000} />
 
             <Text
               className={`text-2xl font-medium my-5 ${
@@ -246,10 +241,7 @@ const Home = () => {
                   </Text>
                 </View>
               ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View className="flex-row">
                     {nearbyJobs.map((job) => (
                       <View
