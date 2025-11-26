@@ -4,6 +4,7 @@ import { getCurrentUser, signIn } from "@/lib/appwrite";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
+import { useAuth } from '@/lib/AuthContext';
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +18,7 @@ import {
 } from "react-native";
 
 export default function Login() {
+  const { SignIn } = useAuth(); // Use auth context
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -25,38 +27,10 @@ export default function Login() {
     password: "",
   });
 
-  // Check if user is already logged in
-  // useEffect(() => {
-  //   checkExistingSession();
-  // }, []);
-
-  const checkExistingSession = async () => {
-    try {
-      const user = await getCurrentUser();
-      if (user) {
-        console.log("✅ User already logged in, redirecting...");
-        router.replace("/(intro)/IntroPage1");
-      }
-    } catch (error) {
-      console.log("ℹ️ No existing session");
-    }
-  };
-
-  const onRefresh = async () => {
+ const onRefresh = async () => {
     setRefreshing(true);
-    try {
-      // Clear form
-      setForm({ email: "", password: "" });
-
-      // Check for existing session
-      await checkExistingSession();
-
-      console.log("✅ Login screen refreshed");
-    } catch (error) {
-      console.log("ℹ️ Refresh completed");
-    } finally {
-      setRefreshing(false);
-    }
+    setForm({ email: '', password: '' });
+    setRefreshing(false);
   };
 
   const onSubmit = async () => {
@@ -77,25 +51,24 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
+      // 1. Sign in to Appwrite
       await signIn({ email, password });
 
-      Alert.alert("Success", "Logged in successfully", [
-        {
-          text: "OK",
-          onPress: () =>
-            router.replace({
-              pathname: "/(intro)/IntroPage1",
-              params: { reload: Date.now().toString() },
-            }),
-        },
-      ]);
+      // 2. Get current user data
+      const userData = await getCurrentUser();
+
+      // 3. Update Auth Context (this will trigger automatic navigation)
+      SignIn(userData);
+
+      // 4. Show success message (navigation happens automatically)
+      Alert.alert("Success", "Logged in successfully");
+
     } catch (err: any) {
       console.error("❌ Login error:", err);
       Alert.alert("Error", err.message || "Invalid email or password");
     } finally {
       setIsSubmitting(false);
     }
-    // DevSettings.reload();
   };
 
   return (

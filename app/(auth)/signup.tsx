@@ -1,9 +1,10 @@
 import CustomInput from "@/components/CustomInput";
 import { images } from "@/constants";
-import { createUser } from "@/lib/appwrite";
+import { createUser,getCurrentUser } from "@/lib/appwrite";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
+import { useAuth } from '@/lib/AuthContext';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +17,7 @@ import {
 } from "react-native";
 
 export default function SignUp() {
+  const { SignIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,10 +28,18 @@ export default function SignUp() {
   });
 
   const onRefresh = async () => {
-    setRefreshing(true);
+  setRefreshing(true);
+
+  try {
+    // Clear signup form
     setForm({ name: "", email: "", password: "" });
+    console.log("🔄 Signup screen refreshed & user state updated");
+  } catch (error) {
+    console.log("⚠️ Refresh error:", error);
+  } finally {
     setRefreshing(false);
-  };
+  }
+};
 
   const onSubmit = async () => {
     const { name, email, password } = form;
@@ -56,12 +66,12 @@ export default function SignUp() {
 
     try {
       await createUser({ name, email, password });
-      Alert.alert("Success", "Account created successfully", [
-        {
-          text: "OK",
-          onPress: () => router.replace("/(intro)/IntroPage1"),
-        },
-      ]);
+
+       const userData = await getCurrentUser();
+
+      SignIn(userData);
+
+      Alert.alert("Success", "Account created successfully");
     } catch (err: any) {
       console.error("Signup error:", err);
       Alert.alert("Error", err.message || "Something went wrong");

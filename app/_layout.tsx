@@ -1,8 +1,9 @@
 import { account } from "@/lib/appwrite"; // ✅ import your appwrite.tsx config
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import {ThemeProvider} from "@/lib/ThemeContext";
+import { ThemeProvider } from "@/lib/ThemeContext";
 import { useTheme } from "@/lib/ThemeContext";
+import { AuthProvider } from '@/lib/AuthContext';
 import "./globals.css";
 
 export default function Layout() {
@@ -45,9 +46,11 @@ export default function Layout() {
     // ✅ simple splash/loading screen
     return null;
   }
- return (
-<ThemeProvider>
-  <Slot />
-</ThemeProvider>
- );
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }

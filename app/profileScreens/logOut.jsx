@@ -5,6 +5,7 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { useAuth } from '@/lib/AuthContext';
 import {
     ActivityIndicator,
     Alert,
@@ -15,61 +16,42 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LogoutScreen() {
+  const { SignOut, user } = useAuth();
   const router = useRouter();
   const { colors, isDarkMode } = useTheme();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to logout from your account?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setLoggingOut(true);
+  Alert.alert(
+    "Confirm Logout",
+    "Are you sure you want to logout?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoggingOut(true);
 
-              // Sign out from Appwrite
-              await signOut();
+            // await signOut();     // clears user + Appwrite session
 
-              // Show success message
-              Alert.alert(
-                "Logged Out",
-                "You have been successfully logged out.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => {
-                      // Navigate to sign-in screen
-                      router.replace({
-                        pathname: "/(auth)/login",
-                        params: { reload: Date.now().toString() },
-                      });
-                    },
-                  },
-                ]
-              );
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert(
-                "Logout Failed",
-                error.message || "Failed to logout. Please try again."
-              );
-            } finally {
-              setLoggingOut(false);
-            }
-          },
+           await SignOut();
+              
+            Alert.alert('Success', 'Logged out successfully');
+
+
+          } catch (error) {
+            Alert.alert("Error", error.message);
+          } finally {
+            setLoggingOut(false);
+          }
         },
-      ],
-      { cancelable: true }
-    );
-  };
+      },
+    ]
+  );
+};
+
 
   const handleCancel = () => {
     router.back();

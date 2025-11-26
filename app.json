@@ -36,32 +36,33 @@
       "output": "static",
       "favicon": "./assets/images/Slogo.png"
     },
-   "plugins": [
-  "expo-router",
-  [
-    "expo-location",
-    {
-      "locationAlwaysAndWhenInUsePermission": "Allow app to use your location."
-    }
-  ],
-  [
-    "expo-splash-screen",
-    {
-      "image": "./assets/images/logo.png",
-      "imageWidth": 200,
-      "resizeMode": "cover",
-      "backgroundColor": "#4A90E2"
-    }
-  ],
-  "expo-font"
-],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow app to use your location."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "cover",
+          "backgroundColor": "#4A90E2"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {
         "persistNavigation": true
-    },
+      },
       "eas": {
         "projectId": "5aabec1d-0105-4209-bf1f-eb7156952414"
       }
