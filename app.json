@@ -13,7 +13,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#4A90E2"
     },
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,

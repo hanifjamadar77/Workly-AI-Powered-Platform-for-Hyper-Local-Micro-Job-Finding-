@@ -2,10 +2,10 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   Text,
   View,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -179,7 +179,7 @@ export default function Jobs() {
                       icon={job.avatarUrl}
                       userName={toSentenceCase(job.userName)}
                       backgroundColor={
-                        isDarkMode ? "bg-gray-800" : "bg-green-200"
+                        isDarkMode ? "bg-gray-200" : "bg-green-100"
                       }
                       onPress={() =>
                         router.push({

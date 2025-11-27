@@ -1,13 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// lib/AuthContext.tsx
+
 import { useRouter, useSegments } from 'expo-router';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser } from './appwrite';
 
 interface AuthContextType {
   user: any;
   isLoading: boolean;
   isAuthenticated: boolean;
-  SignIn: (userData: any) => void;
-  SignOut: () => void;
+  signIn: (userData: any) => void;
+  signOut: () => void;
   refreshUser: () => Promise<void>;
 }
 
@@ -15,8 +17,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   isAuthenticated: false,
-  SignIn: () => {},
-  SignOut: () => {},
+  signIn: () => {},
+  signOut: () => {},
   refreshUser: async () => {},
 });
 
@@ -41,18 +43,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Handle navigation based on auth state
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading) return; // ✅ Don't navigate while loading
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inIntroGroup = segments[0] === '(intro)';
+
+    console.log('🔍 Navigation check:', {
+      user: user?.email,
+      inAuthGroup,
+      segments: segments.join('/'),
+    });
 
     if (!user && !inAuthGroup) {
-      // Redirect to sign-in if not authenticated
+      // ✅ User is not logged in and not in auth screens -> go to login
+      console.log('➡️ Redirecting to login');
       router.replace('/(auth)/login');
     } else if (user && inAuthGroup) {
-      // Redirect to home if already authenticated
+      // ✅ User is logged in but still in auth screens -> go to home
+      console.log('➡️ Redirecting to home');
       router.replace('/(intro)/IntroPage1');
     }
-  }, [user, segments, isLoading]);
+    // If user is logged in and in app, or logged out and in auth, do nothing
+  }, [user, isLoading]); // ✅ Only depend on user and isLoading, NOT segments
 
   const checkUser = async () => {
     try {
@@ -73,14 +85,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const SignIn = async (userData: any) => {
+  const signIn = (userData: any) => {
+    console.log('✅ SignIn called with:', userData?.email);
     setUser(userData);
-    console.log('✅ User signed in:', userData.email);
   };
 
-  const SignOut = () => {
+  const signOut = () => {
+    console.log('✅ SignOut called');
     setUser(null);
-    console.log('✅ User signed out');
   };
 
   const refreshUser = async () => {
@@ -93,8 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
-        SignIn,
-        SignOut,
+        signIn,
+        signOut,
         refreshUser,
       }}
     >

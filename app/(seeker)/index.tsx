@@ -103,7 +103,7 @@ const Home = () => {
       if (userCoords) {
         const validJobs = mappedJobs.filter((job) => job.city && job.state);
         if (validJobs.length === 0) {
-          setNearbyJobs(mappedJobs.slice(0, 2));
+          setNearbyJobs(mappedJobs.slice(0, 3));
           return;
         }
         const sortedJobs = sortJobsByDistance(
@@ -117,7 +117,7 @@ const Home = () => {
           userCoords.lon,
           30
         );
-        setNearbyJobs(nearby.slice(0, 2));
+        setNearbyJobs(nearby.slice(0, 3));
       } else {
         setNearbyJobs(mappedJobs.slice(0, 3));
       }
@@ -150,7 +150,7 @@ const Home = () => {
         className="flex-1 justify-center items-center"
         style={{ backgroundColor: colors.background }}
       >
-        <ActivityIndicator size="large" color={colors.primary} />
+      <ActivityIndicator size="large" color={"#6366F1"} />
         <Text className="mt-4" style={{ color: colors.text }}>
           Loading...
         </Text>

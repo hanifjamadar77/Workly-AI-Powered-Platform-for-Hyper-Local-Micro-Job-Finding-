@@ -210,12 +210,12 @@ export default function WorkerProfileTest(props) {
       </ScrollView>
 
       {/* Floating Hire Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         className="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full justify-center items-center shadow-lg"
         onPress={handleHire}
       >
         <Text className="text-white text-2xl">+</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </SafeAreaView>
   );
 }

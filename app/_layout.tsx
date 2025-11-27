@@ -1,9 +1,8 @@
 import { account } from "@/lib/appwrite"; // ✅ import your appwrite.tsx config
+import { AuthProvider } from '@/lib/AuthContext';
+import { ThemeProvider, useTheme } from "@/lib/ThemeContext";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import { ThemeProvider } from "@/lib/ThemeContext";
-import { useTheme } from "@/lib/ThemeContext";
-import { AuthProvider } from '@/lib/AuthContext';
 import "./globals.css";
 
 export default function Layout() {
@@ -36,9 +35,9 @@ export default function Layout() {
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/(auth)/login"); // guest → login
+      router.replace("/login"); // guest → login
     } else if (isAuthenticated && inAuthGroup) {
-      router.replace("/(intro)/IntroPage1"); // logged-in → seeker dashboard
+      router.replace("/IntroPage1"); // logged-in → seeker dashboard
     }
   }, [isAuthenticated, segments]);
 

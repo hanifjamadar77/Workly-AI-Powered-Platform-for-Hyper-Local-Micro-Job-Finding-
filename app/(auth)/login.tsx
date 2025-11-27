@@ -1,6 +1,6 @@
 import CustomInput from "@/components/CustomInput";
 import { images } from "@/constants";
-import { getCurrentUser, signIn } from "@/lib/appwrite";
+import { getCurrentUser, signIn as appwriteSignIn } from "@/lib/appwrite";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
@@ -18,7 +18,7 @@ import {
 } from "react-native";
 
 export default function Login() {
-  const { SignIn } = useAuth(); // Use auth context
+  const { signIn, refreshUser} = useAuth(); // Use auth context
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,6 +30,7 @@ export default function Login() {
  const onRefresh = async () => {
     setRefreshing(true);
     setForm({ email: '', password: '' });
+    router.replace('/(intro)/IntroPage1');
     setRefreshing(false);
   };
 
@@ -52,13 +53,13 @@ export default function Login() {
 
     try {
       // 1. Sign in to Appwrite
-      await signIn({ email, password });
+      await appwriteSignIn({ email, password });
 
       // 2. Get current user data
       const userData = await getCurrentUser();
 
       // 3. Update Auth Context (this will trigger automatic navigation)
-      SignIn(userData);
+      signIn(userData);
 
       // 4. Show success message (navigation happens automatically)
       Alert.alert("Success", "Logged in successfully");

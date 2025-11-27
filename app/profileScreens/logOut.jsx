@@ -1,6 +1,4 @@
-// app/profileScreens/logout.tsx or wherever your logout screen is
-
-import { signOut } from "@/lib/appwrite";
+import { signOut as appwriteSignOut } from "@/lib/appwrite"; // ✅ Rename to avoid confusion
 import { useTheme } from "@/lib/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -16,45 +14,53 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LogoutScreen() {
-  const { SignOut, user } = useAuth();
+  const { signOut } = useAuth(); // ✅ Fixed: lowercase signOut
   const router = useRouter();
   const { colors, isDarkMode } = useTheme();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-  Alert.alert(
-    "Confirm Logout",
-    "Are you sure you want to logout?",
-    [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setLoggingOut(true);
-
-            // await signOut();     // clears user + Appwrite session
-
-           await SignOut();
-              
-            Alert.alert('Success', 'Logged out successfully');
-
-
-          } catch (error) {
-            Alert.alert("Error", error.message);
-          } finally {
-            setLoggingOut(false);
-          }
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout from your account?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
         },
-      },
-    ]
-  );
-};
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoggingOut(true);
 
+              // 1️⃣ Sign out from Appwrite (clears server session)
+              await appwriteSignOut();
+
+              // 2️⃣ Update Auth Context (clears local state & triggers navigation)
+              await signOut();
+
+              // 3️⃣ Show success message
+              Alert.alert("Logged Out", "You have been successfully logged out.");
+
+              // Navigation happens automatically via AuthContext
+
+            } catch (error) {
+              console.error("❌ Logout error:", error);
+              Alert.alert("Error", error.message || "Failed to logout");
+            } finally {
+              setLoggingOut(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const handleCancel = () => {
-    router.back();
+    router.replace('/supportPages/profile');
   };
 
   return (
@@ -118,7 +124,9 @@ export default function LogoutScreen() {
           ) : (
             <View className="flex-row items-center">
               <Ionicons name="log-out-outline" size={24} color="#fff" />
-              <Text className="text-white text-lg font-bold ml-2">Logout</Text>
+              <Text className="text-white text-lg font-bold ml-2">
+                Logout
+              </Text>
             </View>
           )}
         </TouchableOpacity>

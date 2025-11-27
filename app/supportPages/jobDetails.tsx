@@ -254,7 +254,7 @@ const handleApplyForJob = async () => {
         <Text className="text-xl text-gray-800 font-semibold mb-2">Job Not Found</Text>
         <Text className="text-gray-600 mb-6">This job may have been removed</Text>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => router.replace('/(seeker)/jobs')}
           className="bg-indigo-600 px-6 py-3 rounded-xl"
         >
           <Text className="text-white font-semibold">Go Back</Text>

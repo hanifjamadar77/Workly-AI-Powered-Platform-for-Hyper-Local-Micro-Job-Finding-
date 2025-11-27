@@ -19,6 +19,8 @@ import {
   createWorkerProfile,
   updateWorkerProfile,
 } from "../../lib/appwrite";
+import { images } from "@/constants";
+import { router } from "expo-router";
 
 export default function yourProfile() {
   const navigation = useNavigation();
@@ -224,10 +226,14 @@ export default function yourProfile() {
       {/* Header */}
       <View className="bg-white px-4 py-4 flex-row items-center justify-between border-b border-gray-100">
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => router.replace('/supportPages/profile')}
           className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center"
         >
-          <Text className="text-lg">←</Text>
+          <Image
+                source={images.arrowBack}
+                className="w-6 h-6"
+                resizeMode="contain"
+              />
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-800">Edit Profile</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving}>
@@ -250,9 +256,6 @@ export default function yourProfile() {
                 className="w-24 h-24 rounded-full"
                 resizeMode="cover"
               />
-            </View>
-            <View className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 rounded-full justify-center items-center border-4 border-white">
-              <Text className="text-white text-lg">📷</Text>
             </View>
           </TouchableOpacity>
           <Text className="text-gray-500 text-sm mt-3">
@@ -431,7 +434,7 @@ export default function yourProfile() {
           )}
 
           <Text className="text-center text-gray-400 text-sm mb-4">
-            - OR enter manually -
+            - Don't enter manually the location wants latitude and longitude -
           </Text>
 
           <View className="mb-4">

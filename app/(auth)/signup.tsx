@@ -17,7 +17,7 @@ import {
 } from "react-native";
 
 export default function SignUp() {
-  const { SignIn } = useAuth();
+  const { signIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,9 +67,9 @@ export default function SignUp() {
     try {
       await createUser({ name, email, password });
 
-       const userData = await getCurrentUser();
+      const userData = await getCurrentUser();
 
-      SignIn(userData);
+      signIn(userData);
 
       Alert.alert("Success", "Account created successfully");
     } catch (err: any) {
