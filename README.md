@@ -8,7 +8,7 @@
 A comprehensive mobile application connecting blue-collar workers with job opportunities in their local area. Built with React Native and Expo.
 
 ## 📱 Screenshots
-Detail Screenshots I will upload soon
+<img width="257" height="571" alt="image" src="https://github.com/user-attachments/assets/b947e90b-5cba-44e4-90bd-11caf00ee716" /> <img width="257" height="571" alt="image" src="https://github.com/user-attachments/assets/35eaf4d8-a1e0-4fd7-9f6c-9a22a3da8d14" /> <img width="257" height="571" alt="image" src="https://github.com/user-attachments/assets/ea474e61-2250-4cd9-822a-0325b14bdb6b" /> 
 ## ✨ Features
 
 ### 👷 For Workers
