@@ -66,4 +66,12 @@ A comprehensive mobile application connecting blue-collar workers with job oppor
 - Input validation
 - Encrypted data storage
 
+## 📱 APK Download
+
+You can download and test the Android application using the link below:
+
+👉 [Download APK](https://github.com/hanifjamadar77/Workly-AI-Powered-Platform-for-Hyper-Local-Micro-Job-Finding-/releases)
+
+> Note: Enable "Install from Unknown Sources" on your Android device.
+
 ⭐ Star this repo if you find it helpful!
